@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,9 +17,9 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const [isSuccess, setIsSuccess] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -33,7 +34,7 @@ export default function ForgotPasswordPage() {
     setError(null);
     try {
       await apiClient.post('/auth/forgot-password', data);
-      setIsSuccess(true);
+      router.push(`/reset-password?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.');
     } finally {
@@ -41,24 +42,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-orange-500/10 border-2 border-orange-100 relative z-10 text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 text-emerald-500 mb-4 shadow-sm">
-          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-black text-gray-800">Yêu cầu đã được gửi!</h1>
-        <p className="text-gray-500 font-medium">Nếu email tồn tại trong hệ thống, chúng tôi sẽ gửi liên kết đặt lại mật khẩu cho bạn qua hộp thư.</p>
-        <Link href="/login" className="block mt-6">
-          <Button className="w-full h-14 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-[0_4px_0_0_#c2410c] hover:translate-y-1 hover:shadow-none transition-all">
-            Trở về đăng nhập
-          </Button>
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-orange-500/10 border-2 border-orange-100 relative z-10">

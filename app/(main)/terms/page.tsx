@@ -19,7 +19,7 @@ export default function TermsPage() {
         <div className="text-center space-y-6 mb-16">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border-2 border-orange-200 text-orange-600 font-bold shadow-[0_4px_0_0_rgba(254,215,170,1)] hover:translate-y-1 hover:shadow-none transition-all cursor-default">
             <span className="text-xl">📜</span>
-            Cập nhật lần cuối: Hôm nay
+            Cập nhật lần cuối: 27/03/2026
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-gray-800 drop-shadow-sm">
             Điều Khoản <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-500">Sử Dụng</span>

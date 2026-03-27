@@ -38,11 +38,8 @@ export default function UpgradePage() {
     router.push(`/billing/checkout?plan=${planId}`);
   };
 
-  if (isLoading) return <div className="p-20 text-center animate-pulse text-orange-400 font-bold text-xl">Đang tải gói cước cực xịn... ✨</div>;
-
   return (
-    <div className="min-h-screen bg-[#FFF9F5] flex flex-col selection:bg-orange-200 overflow-hidden relative">
-      
+    <div className="min-h-screen bg-[#FFF9F5] flex flex-col selection:bg-orange-200 overflow-hidden relative pb-20">
       {/* CUTE DECORATIONS */}
       <div className="absolute top-20 left-10 text-orange-300 opacity-50 animate-bounce">
         <Sparkles size={48} />
@@ -55,7 +52,6 @@ export default function UpgradePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-20 w-full relative z-10">
-        
         {/* Header */}
         <div className="text-center space-y-6 mb-16">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border-2 border-orange-200 text-orange-600 font-bold shadow-[0_4px_0_0_rgba(254,215,170,1)] hover:translate-y-1 hover:shadow-none transition-all cursor-default">
@@ -71,9 +67,15 @@ export default function UpgradePage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => {
-            const isPremium = plan.price_vnd > 0;
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-20 space-y-6">
+            <div className="w-20 h-20 border-8 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+            <p className="text-2xl font-black text-orange-500 animate-pulse">Đang tải gói cước cực xịn... ✨</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {plans.map((plan) => {
+              const isPremium = plan.price_vnd > 0;
             const formatPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price_vnd);
             const cycleText = plan.billing_cycle === 'monthly' ? '/ tháng' : plan.billing_cycle === 'yearly' ? '/ năm' : '';
 
@@ -160,10 +162,11 @@ export default function UpgradePage() {
                   </Link>
                 )}
 
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

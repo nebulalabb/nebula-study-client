@@ -42,7 +42,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-      router.push('/verify-email');
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {

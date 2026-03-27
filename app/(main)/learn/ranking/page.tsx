@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { Trophy, Star, Target, Crown, Zap, Flame, Award, Sparkles, ChevronRight, Search, Medal } from 'lucide-react';
+import Link from 'next/link';
 
 interface LeaderboardUser {
   id: string;
@@ -99,13 +100,13 @@ export default function RankingPage() {
                         <Medal size={20} />
                      </div>
                   </div>
-                  <div className="w-full bg-white border-4 border-gray-100 rounded-[2.5rem] p-8 text-center space-y-2 shadow-2xl shadow-gray-200/50 h-40 flex flex-col justify-center">
+                  <Link href={`/user/${topThree[1].id}`} className="w-full bg-white border-4 border-gray-100 rounded-[2.5rem] p-8 text-center space-y-2 shadow-2xl shadow-gray-200/50 h-40 flex flex-col justify-center hover:border-orange-200 transition-colors">
                      <p className="font-black text-xl text-gray-950 truncate px-2 leading-none mb-1">{topThree[1].full_name}</p>
                      <p className="text-sm font-black text-orange-500 uppercase tracking-widest">{topThree[1].xp.toLocaleString()} XP</p>
                      <div className="flex justify-center gap-2 pt-2">
                         <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-3 py-1 rounded-lg border border-orange-100 uppercase tracking-widest">Cấp {topThree[1].level}</span>
                      </div>
-                  </div>
+                  </Link>
                </div>
             )}
 
@@ -120,7 +121,7 @@ export default function RankingPage() {
                         {topThree[0].avatar_url ? <img src={topThree[0].avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-500 font-black text-4xl uppercase">{topThree[0].full_name.charAt(0)}</div>}
                      </div>
                   </div>
-                  <div className="w-full bg-gradient-to-br from-white to-orange-50 border-4 border-amber-100 rounded-[3rem] p-10 text-center space-y-2 shadow-2xl shadow-amber-500/10 h-52 flex flex-col justify-center">
+                  <Link href={`/user/${topThree[0].id}`} className="w-full bg-gradient-to-br from-white to-orange-50 border-4 border-amber-100 rounded-[3rem] p-10 text-center space-y-2 shadow-2xl shadow-amber-500/10 h-52 flex flex-col justify-center hover:border-amber-300 transition-colors">
                      <p className="font-black text-2xl text-gray-950 truncate px-2 leading-none mb-1">{topThree[0].full_name}</p>
                      <p className="text-lg font-black text-amber-500 uppercase tracking-widest">{topThree[0].xp.toLocaleString()} XP</p>
                      <div className="flex justify-center gap-3 pt-3">
@@ -129,7 +130,7 @@ export default function RankingPage() {
                            <Flame size={14} fill="currentColor" /> {topThree[0].streak}
                         </span>
                      </div>
-                  </div>
+                  </Link>
                </div>
             )}
 
@@ -144,13 +145,13 @@ export default function RankingPage() {
                         <Medal size={20} />
                      </div>
                   </div>
-                  <div className="w-full bg-white border-4 border-orange-50 rounded-[2.5rem] p-8 text-center space-y-2 shadow-2xl shadow-orange-500/5 h-40 flex flex-col justify-center">
+                  <Link href={`/user/${topThree[2].id}`} className="w-full bg-white border-4 border-orange-50 rounded-[2.5rem] p-8 text-center space-y-2 shadow-2xl shadow-orange-500/5 h-40 flex flex-col justify-center hover:border-orange-200 transition-colors">
                      <p className="font-black text-xl text-gray-950 truncate px-2 leading-none mb-1">{topThree[2].full_name}</p>
                      <p className="text-sm font-black text-orange-500 uppercase tracking-widest">{topThree[2].xp.toLocaleString()} XP</p>
                      <div className="flex justify-center gap-2 pt-2">
                         <span className="text-[10px] font-black bg-orange-50 text-orange-600 px-3 py-1 rounded-lg border border-orange-100 uppercase tracking-widest">Cấp {topThree[2].level}</span>
                      </div>
-                  </div>
+                  </Link>
                </div>
             )}
          </div>
@@ -183,12 +184,13 @@ export default function RankingPage() {
                {others.map((u) => {
                  const isMe = u.id === currentUser?.id;
                  return (
-                    <div 
-                      key={u.id} 
-                      className={`flex items-center justify-between p-6 rounded-[2rem] border-4 transition-all hover:scale-[1.01] ${
-                        isMe ? 'bg-orange-50 border-orange-200 shadow-xl shadow-orange-500/10 scale-[1.02]' : 'bg-white border-gray-50 hover:border-orange-100 hover:bg-orange-50/20'
-                      }`}
-                    >
+                    <Link 
+                       key={u.id} 
+                       href={`/user/${u.id}`}
+                       className={`flex items-center justify-between p-6 rounded-[2rem] border-4 transition-all hover:scale-[1.01] ${
+                         isMe ? 'bg-orange-50 border-orange-200 shadow-xl shadow-orange-500/10 scale-[1.02]' : 'bg-white border-gray-50 hover:border-orange-100 hover:bg-orange-50/20'
+                       }`}
+                     >
                        <div className="flex items-center gap-6">
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black transition-colors ${
                             isMe ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-300'
@@ -221,7 +223,7 @@ export default function RankingPage() {
                           </p>
                           <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] leading-none">XP Tổng</p>
                        </div>
-                    </div>
+                    </Link>
                  );
                })}
             </div>

@@ -30,8 +30,15 @@ export function MessageBell() {
     }
   }, [socket]);
 
+  const lastFetchRef = React.useRef<number>(0);
+
   const fetchUnread = async () => {
+    // Throttle: don't fetch more than once every 30 seconds
+    const now = Date.now();
+    if (now - lastFetchRef.current < 30000) return;
+    
     try {
+      lastFetchRef.current = now;
       const res = await apiClient.get('/social/messages/unread-count');
       setUnreadCount(res.data.data.count);
     } catch (err) {

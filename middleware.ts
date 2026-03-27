@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedRoutes = ['/dashboard', '/profile', '/settings'];
+const protectedRoutes = ['/dashboard', '/profile', '/settings', '/billing'];
 const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/callback'];
 
 export function middleware(request: NextRequest) {
@@ -9,6 +9,10 @@ export function middleware(request: NextRequest) {
 
   // 1. If trying to access protected route without token, redirect to login
   if (protectedRoutes.some(route => pathname.startsWith(route)) && !token) {
+    // Exception: Allow access to /billing/upgrade even without token
+    if (pathname.startsWith('/billing/upgrade')) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -21,5 +25,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/profile/:path*', '/settings/:path*', '/login', '/register', '/forgot-password', '/reset-password', '/verify-email'],
+  matcher: ['/', '/dashboard/:path*', '/profile/:path*', '/settings/:path*', '/billing/:path*', '/login', '/register', '/forgot-password', '/reset-password', '/verify-email'],
 };

@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { LayoutDashboard, Users, GraduationCap, FileText, BookOpen, Shield, Loader2, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, FileText, BookOpen, Shield, Loader2, CreditCard, MessageSquare } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/admin/exams', label: 'Đề thi', icon: FileText },
   { href: '/admin/lessons', label: 'Bài học', icon: BookOpen },
   { href: '/admin/payments', label: 'Thanh toán', icon: CreditCard },
+  { href: '/admin/support', label: 'Hỗ trợ', icon: MessageSquare },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
