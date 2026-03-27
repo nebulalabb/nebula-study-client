@@ -11,15 +11,17 @@ import Link from 'next/link';
 export default function MicrolearnDailyPage() {
   const router = useRouter();
   const [streak, setStreak] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     let redirecting = false;
     try {
-       const [sRes, lRes] = await Promise.all([
+       const [sRes, lRes, hRes] = await Promise.all([
          apiClient.get('/microlearn/streak'),
-         apiClient.get('/microlearn/today')
+         apiClient.get('/microlearn/today'),
+         apiClient.get('/microlearn/history')
        ]);
        
        const items = lRes.data.data.items;
@@ -30,6 +32,7 @@ export default function MicrolearnDailyPage() {
        }
 
        setStreak(sRes.data.data);
+       setHistory(hRes.data.data.items);
        setLessons(items);
     } catch (err) {
        console.error(err);
@@ -80,6 +83,7 @@ export default function MicrolearnDailyPage() {
                longestStreak={streak.longest_streak}
                totalDays={streak.total_days}
                lastActivityDate={streak.last_activity_date}
+               history={history}
              />
            )}
 

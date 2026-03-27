@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { TutorCard } from '@/components/tutor/TutorCard';
 import { apiClient } from '@/lib/api-client';
-import { Search, Filter, Briefcase, Star, Sparkles, GraduationCap, Users } from 'lucide-react';
+import { Search, Filter, Briefcase, Star, Sparkles, GraduationCap, Users, Calendar } from 'lucide-react';
+import { CuteCalendar } from '@/components/tutor/CuteCalendar';
+import { CuteSelect } from '@/components/ui/CuteSelect';
 import Link from 'next/link';
 
 export default function TutorCatalogPage() {
@@ -11,14 +13,27 @@ export default function TutorCatalogPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
+  const [minRating, setMinRating] = useState(0);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 2000000 });
+  const [dateFilter, setDateFilter] = useState('');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [totalTutors, setTotalTutors] = useState(0);
 
   const subjects = ['Toán học', 'Tiếng Anh', 'Vật lý', 'Hóa học', 'Lập trình', 'Ngữ văn'];
 
   const fetchTutors = async () => {
     setIsLoading(true);
     try {
-       const { data } = await apiClient.get('/tutor', { params: { subject: subjectFilter || undefined } });
+       const params: any = { 
+         subject: subjectFilter || undefined,
+         min_rating: minRating || undefined,
+         price_min: priceRange.min || undefined,
+         price_max: priceRange.max || undefined,
+         date: dateFilter || undefined
+       };
+       const { data } = await apiClient.get('/tutor', { params });
        setTutors(data.data.items || []);
+       setTotalTutors(data.data.total || 0);
     } catch (err) {
        console.error(err);
     } finally {
@@ -29,7 +44,7 @@ export default function TutorCatalogPage() {
   useEffect(() => {
     fetchTutors();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjectFilter]);
+  }, [subjectFilter, minRating, priceRange, dateFilter]);
 
   const filteredTutors = tutors.filter(t => 
     t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,10 +80,12 @@ export default function TutorCatalogPage() {
                   <Briefcase size={22} className="group-hover/reg:rotate-12 transition-transform" />
                   Trở thành Gia Sư
                </Link>
-               <div className="flex items-center gap-3 px-6 py-4 bg-orange-50/50 rounded-2xl border border-orange-100/50">
-                  <Users size={20} className="text-orange-400" />
-                  <span className="text-sm font-black text-orange-900 tracking-tight">1,200+ Mentors</span>
-               </div>
+                <div className="flex items-center gap-3 px-6 py-4 bg-orange-50/50 rounded-2xl border border-orange-100/50 animate-in fade-in slide-in-from-right-4 duration-500 delay-300">
+                   <Users size={20} className="text-orange-400" />
+                   <span className="text-sm font-black text-orange-900 tracking-tight">
+                      {totalTutors.toLocaleString()} Gia sư
+                   </span>
+                </div>
             </div>
           </div>
 
@@ -92,39 +109,138 @@ export default function TutorCatalogPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <section className="space-y-8">
-          <div className="flex items-center gap-4 text-[11px] font-black text-orange-400 uppercase tracking-[0.3em] overflow-x-auto pb-2 custom-scrollbar">
-             <Filter size={16} /> Lọc theo môn học
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <CuteSelect 
+              label="Môn học"
+              placeholder="Tất cả môn học"
+              value={subjectFilter}
+              onChange={setSubjectFilter}
+              options={subjects}
+            />
+
+            <div className="lg:col-span-2 space-y-4">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Đánh giá tối thiểu</label>
+               <div className="flex gap-2">
+                 {[4,3,2,1].map(r => (
+                   <button 
+                     key={r}
+                     onClick={() => setMinRating(minRating === r ? 0 : r)}
+                     className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 flex items-center justify-center gap-1 ${
+                       minRating === r ? 'bg-orange-500 border-orange-500 text-white shadow-lg' : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200'
+                     }`}
+                   >
+                     {r} <Star size={12} className={minRating === r ? 'fill-white' : 'fill-gray-200'} />
+                   </button>
+                 ))}
+               </div>
+            </div>
+
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Giá tối đa (VNĐ)</label>
+               <input 
+                 type="text" 
+                 placeholder="VD: 500.000"
+                 className="w-full bg-white border-2 border-orange-50 rounded-2xl px-6 py-4 font-black text-gray-700 outline-none focus:border-orange-200 transition-all shadow-sm"
+                 value={priceRange.max.toLocaleString('vi-VN')}
+                 onChange={(e) => {
+                    const val = e.target.value.replace(/\./g, '');
+                    if (!isNaN(Number(val))) {
+                        setPriceRange({ ...priceRange, max: Number(val) });
+                    }
+                 }}
+               />
+            </div>
+
+            <div className="lg:col-span-4 space-y-6 relative">
+               <div className="flex items-center justify-between px-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar size={14} className="text-orange-400" /> Ngày học lý tưởng
+                  </label>
+                  {dateFilter && (
+                    <button 
+                      onClick={() => setDateFilter('')}
+                      className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:underline"
+                    >
+                      Xoá chọn ngày
+                    </button>
+                  )}
+               </div>
+
+               <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar -mx-2 px-2 snap-x snap-mandatory">
+                  <button
+                    onClick={() => {
+                        setDateFilter('');
+                        setIsCalendarOpen(!isCalendarOpen);
+                    }}
+                    className={`shrink-0 w-24 h-24 rounded-[2.5rem] border-4 transition-all flex flex-col items-center justify-center gap-1 group relative snap-start ${
+                      isCalendarOpen 
+                        ? 'bg-orange-500 border-orange-100 text-white shadow-xl shadow-orange-500/20 scale-105 z-10' 
+                        : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-xl transition-colors ${isCalendarOpen ? 'bg-white/20' : 'bg-orange-50 text-orange-500'}`}>
+                        <Calendar size={24} strokeWidth={3} />
+                    </div>
+                    <div className="text-[10px] font-black uppercase tracking-tighter">Mở Lịch</div>
+                    {isCalendarOpen && <Sparkles size={12} className="absolute top-2 right-2 animate-bounce" />}
+                  </button>
+
+                  <div className="w-0.5 h-16 bg-orange-100/50 self-center shrink-0 rounded-full" />
+
+                  {Array.from({ length: 7 }).map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + i);
+                    const isToday = i === 0;
+                    const dateStr = d.toISOString().split('T')[0];
+                    const dayName = d.toLocaleDateString('vi-VN', { weekday: 'short' }).replace('Th ', 'T');
+                    const dayNum = d.getDate();
+                    const monthNum = d.getMonth() + 1;
+                    const isActive = dateFilter === dateStr && !isCalendarOpen;
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                            setDateFilter(isActive ? '' : dateStr);
+                            setIsCalendarOpen(false);
+                        }}
+                        className={`shrink-0 w-20 h-24 rounded-[2.5rem] border-4 transition-all flex flex-col items-center justify-center gap-0 group relative snap-start ${
+                          isActive 
+                            ? 'bg-orange-500 border-orange-100 text-white shadow-xl shadow-orange-500/20 scale-105 z-10' 
+                            : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200 shadow-sm shadow-orange-100/10'
+                        }`}
+                      >
+                        <div className={`text-[9px] font-black uppercase tracking-tighter mb-0.5 ${isActive ? 'opacity-80' : 'text-gray-300'}`}>
+                          {isToday ? 'Nay' : dayName}
+                        </div>
+                        <div className="text-2xl font-black tabular-nums leading-none mb-1">{dayNum}</div>
+                        <div className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                          isActive ? 'bg-white/20 text-white' : 'bg-orange-50 text-orange-300'
+                        }`}>
+                          T.{monthNum}
+                        </div>
+                        {isActive && <Sparkles size={10} className="absolute top-2 right-2 animate-pulse" />}
+                        {isToday && !isActive && <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-rose-400 rounded-full" />}
+                      </button>
+                    );
+                  })}
+               </div>
+
+               {/* Popover Calendar */}
+               {isCalendarOpen && (
+                 <div className="absolute top-full left-0 mt-4 z-50 w-full max-w-sm animate-in fade-in slide-in-from-top-4 duration-300">
+                    <CuteCalendar 
+                      selectedDate={dateFilter} 
+                      onSelect={(date) => {
+                        setDateFilter(date);
+                        setIsCalendarOpen(false);
+                      }}
+                      onClose={() => setIsCalendarOpen(false)}
+                    />
+                 </div>
+               )}
+            </div>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-4">
-            <button 
-              onClick={() => setSubjectFilter('')}
-              className={`px-8 py-4 rounded-2xl font-black transition-all border-4 shadow-sm flex items-center gap-2 ${
-                !subjectFilter 
-                  ? 'bg-orange-500 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105' 
-                  : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200 hover:shadow-lg'
-              }`}
-            >
-              🚀 Tất cả
-            </button>
-            
-            {subjects.map(s => (
-              <button 
-                key={s}
-                onClick={() => setSubjectFilter(s)}
-                className={`px-8 py-4 rounded-2xl font-black transition-all border-4 shadow-sm ${
-                  subjectFilter === s 
-                    ? 'bg-orange-500 border-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105' 
-                    : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200 hover:shadow-lg'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </section>
 
         {/* Tutors Grid */}
         {isLoading ? (

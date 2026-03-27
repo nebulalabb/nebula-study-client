@@ -8,9 +8,10 @@ interface StreakProps {
   longestStreak: number;
   totalDays: number;
   lastActivityDate: string | null;
+  history: any[];
 }
 
-export function StreakDisplay({ currentStreak, longestStreak, totalDays, lastActivityDate }: StreakProps) {
+export function StreakDisplay({ currentStreak, longestStreak, totalDays, lastActivityDate, history }: StreakProps) {
   const isHot = currentStreak > 0;
 
   return (
@@ -65,6 +66,50 @@ export function StreakDisplay({ currentStreak, longestStreak, totalDays, lastAct
              </p>
           </div>
         )}
+      </div>
+
+      {/* GitHub-style Contribution Graph */}
+      <div className="bg-white border-2 border-orange-50 p-6 rounded-[2rem] shadow-lg shadow-orange-500/5">
+         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Lịch sử 12 tuần gần nhất</p>
+         
+         <div className="grid grid-cols-12 gap-2">
+            {Array.from({ length: 12 }).map((_, weekIndex) => (
+               <div key={weekIndex} className="grid grid-rows-7 gap-1.5">
+                  {Array.from({ length: 7 }).map((_, dayIndex) => {
+                     // Calculate date for this cell
+                     const date = new Date();
+                     const daysToSubtract = (11 - weekIndex) * 7 + (6 - dayIndex);
+                     date.setDate(date.getDate() - daysToSubtract);
+                     const dateStr = date.toISOString().split('T')[0];
+                     
+                     const activity = history.find(h => h.date.split('T')[0] === dateStr);
+                     const count = activity ? parseInt(activity.count) : 0;
+                     
+                     let bgColor = 'bg-gray-100';
+                     if (count > 0) bgColor = 'bg-orange-400';
+                     if (count > 1) bgColor = 'bg-orange-600';
+
+                     return (
+                        <div 
+                           key={dayIndex} 
+                           title={`${dateStr}: ${count} bài học`}
+                           className={`w-3.5 h-3.5 rounded-sm transition-all hover:scale-125 hover:shadow-sm ${bgColor}`} 
+                        />
+                     );
+                  })}
+               </div>
+            ))}
+         </div>
+         
+         <div className="mt-4 flex items-center justify-end gap-2 text-[8px] font-bold text-gray-300 uppercase tracking-widest">
+            <span>Ít</span>
+            <div className="flex gap-1">
+               <div className="w-2.5 h-2.5 bg-gray-100 rounded-px" />
+               <div className="w-2.5 h-2.5 bg-orange-400 rounded-px" />
+               <div className="w-2.5 h-2.5 bg-orange-600 rounded-px" />
+            </div>
+            <span>Nhiều</span>
+         </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 import { format, addDays, startOfDay, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Calendar, Clock, CheckCircle2, ChevronRight, Sparkles, AlertCircle } from 'lucide-react';
@@ -21,37 +22,55 @@ interface BookingCalendarProps {
 export function BookingCalendar({ availabilities, hourlyRateVnd, onConfirm, isSubmitting }: BookingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [realTimeSlots, setRealTimeSlots] = useState<string[]>([]);
+  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<any[]>([]);
 
   // Generate next 14 days
   const today = startOfDay(new Date());
   const days = Array.from({ length: 14 }).map((_, i) => addDays(today, i));
 
-  // Determine available slots for the selected date
-  const getSlotsForDate = (date: Date) => {
-    const dayOfWeek = date.getDay();
-    const dayAvailabilities = availabilities.filter(a => a.day_of_week === dayOfWeek);
-    
-    if (dayAvailabilities.length === 0) return [];
+  useEffect(() => {
+    if (selectedDate) {
+      const fetchSlots = async () => {
+        setIsFetchingSlots(true);
+        try {
+          const dateStr = format(selectedDate, 'yyyy-MM-dd');
+          // We need tutorId here, but it's not in props. 
+          // Let's assume we can get it from URL or pass it down.
+          // Looking at the use in [tutor_id]/page.tsx, we should have it.
+          const tutorId = window.location.pathname.split('/').pop();
+          
+          const { data } = await apiClient.get(`/tutor/${tutorId}/availability`, { params: { date: dateStr } });
+          
+          const baseSlots: string[] = [];
+          data.data.slots.forEach((a: any) => {
+             const start = parse(a.start_time, 'HH:mm:ss', selectedDate);
+             const end = parse(a.end_time, 'HH:mm:ss', selectedDate);
+             let current = start;
+             while (current < end) {
+               if (current.getTime() > Date.now() + 3600000) {
+                 baseSlots.push(format(current, 'HH:mm'));
+               }
+               current = new Date(current.getTime() + 60 * 60000);
+             }
+          });
 
-    let slots: string[] = [];
-    dayAvailabilities.forEach(a => {
-       const start = parse(a.start_time, 'HH:mm:ss', date);
-       const end = parse(a.end_time, 'HH:mm:ss', date);
-       
-       let current = start;
-       while (current < end) {
-         // Generate 60 min slots
-         if (current.getTime() > Date.now() + 3600000) { // Require at least 1 hr advance booking
-           slots.push(format(current, 'HH:mm'));
-         }
-         current = new Date(current.getTime() + 60 * 60000); // Add 60 mins
-       }
-    });
+          const booked = data.data.bookings.map((b: any) => b.start_time.substring(0, 5));
+          setBookedSlots(booked);
+          setRealTimeSlots([...new Set(baseSlots)].sort());
 
-    return [...new Set(slots)].sort();
-  };
+        } catch (err) {
+          console.error('Failed to fetch slots', err);
+        } finally {
+          setIsFetchingSlots(false);
+        }
+      };
+      fetchSlots();
+    }
+  }, [selectedDate]);
 
-  const availableSlots = selectedDate ? getSlotsForDate(selectedDate) : [];
+  const availableSlots = realTimeSlots;
 
   return (
     <div className="bg-white border-2 border-orange-50 rounded-[3rem] p-8 md:p-10 shadow-2xl shadow-orange-500/5 relative overflow-hidden group/cal transition-all hover:border-orange-100">
@@ -117,23 +136,34 @@ export function BookingCalendar({ availabilities, hourlyRateVnd, onConfirm, isSu
                  </span>
               </div>
               
-              {availableSlots.length > 0 ? (
+              {isFetchingSlots ? (
+                <div className="grid grid-cols-4 gap-3">
+                   {[1,2,3,4].map(i => <div key={i} className="h-16 bg-gray-50 animate-pulse rounded-2xl" />)}
+                </div>
+              ) : availableSlots.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-3">
                    {availableSlots.map(time => {
                      const isSelected = selectedTime === time;
+                     const isBooked = bookedSlots.includes(time);
+
                      return (
                        <button
                          key={time}
+                         disabled={isBooked}
                          onClick={() => setSelectedTime(time)}
                          className={`p-4 rounded-2xl border-2 font-black transition-all text-center flex flex-col items-center justify-center gap-1 relative overflow-hidden ${
-                           isSelected 
-                            ? 'border-orange-500 bg-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105' 
-                            : 'border-orange-50 bg-[#FFF9F5] hover:border-orange-200 hover:bg-orange-50/50 text-gray-700'
+                           isBooked
+                             ? 'border-gray-100 bg-gray-50 text-gray-200 cursor-not-allowed opacity-50'
+                             : isSelected 
+                               ? 'border-orange-500 bg-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105' 
+                               : 'border-orange-50 bg-[#FFF9F5] hover:border-orange-200 hover:bg-orange-50/50 text-gray-700'
                          }`}
                        >
                          {isSelected && <Sparkles size={10} className="absolute top-2 right-2 text-white/50 animate-pulse" />}
                          <span className="text-lg tracking-tight">{time}</span>
-                         <span className={`text-[8px] font-black uppercase opacity-60 ${isSelected ? 'text-white' : 'text-gray-400'}`}>Bắt đầu</span>
+                         <span className={`text-[8px] font-black uppercase opacity-60 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                           {isBooked ? 'Đã đặt' : 'Bắt đầu'}
+                         </span>
                        </button>
                      )
                    })}

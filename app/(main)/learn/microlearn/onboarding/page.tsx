@@ -9,6 +9,7 @@ export default function MicrolearnOnboardingPage() {
   const router = useRouter();
   const [topics, setTopics] = useState<any[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [notificationTime, setNotificationTime] = useState('08:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +30,11 @@ export default function MicrolearnOnboardingPage() {
     if (selected.size === 0) return;
     setIsSubmitting(true);
     try {
-      const promises = Array.from(selected).map(id => apiClient.post('/microlearn/topics/' + id + '/subscribe'));
+      const promises = Array.from(selected).map(id => 
+        apiClient.post('/microlearn/topics/' + id + '/subscribe', { 
+          notification_time: notificationTime + ':00' 
+        })
+      );
       await Promise.all(promises);
       router.push('/learn/microlearn');
     } catch (err: any) {
@@ -116,6 +121,43 @@ export default function MicrolearnOnboardingPage() {
                </button>
              )
            })}
+        </div>
+        
+        {/* Notification Time Selection */}
+        <div className="bg-white border-4 border-orange-50 p-10 rounded-[3.5rem] shadow-xl shadow-orange-500/5 max-w-2xl mx-auto space-y-8">
+           <div className="text-center">
+             <h2 className="text-2xl font-black text-gray-900 mb-2">Chọn giờ nhắc nhở học tập ⏰</h2>
+             <p className="text-gray-400 font-bold">Nebula sẽ gửi bài học và nhắc bạn vào khung giờ này mỗi ngày.</p>
+           </div>
+           
+           <div className="flex flex-wrap justify-center gap-4">
+              {[
+                { label: 'Sáng sớm (7:00)', value: '07:00' },
+                { label: 'Nghỉ trưa (12:00)', value: '12:00' },
+                { label: 'Tối muộn (21:00)', value: '21:00' }
+              ].map(t => (
+                <button
+                  key={t.value}
+                  onClick={() => setNotificationTime(t.value)}
+                  className={`px-8 py-4 rounded-2xl font-black transition-all ${
+                    notificationTime === t.value 
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' 
+                      : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+              <div className="flex items-center gap-2 px-6 py-4 bg-orange-50 rounded-2xl border-2 border-dashed border-orange-200">
+                 <span className="text-orange-600 font-black">Khác:</span>
+                 <input 
+                    type="time" 
+                    value={notificationTime} 
+                    onChange={(e) => setNotificationTime(e.target.value)}
+                    className="bg-transparent border-none focus:ring-0 text-orange-600 font-black w-24"
+                 />
+              </div>
+           </div>
         </div>
 
         <div className="flex flex-col items-center justify-center gap-6 pt-12">

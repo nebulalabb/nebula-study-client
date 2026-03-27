@@ -158,6 +158,21 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
+        
+        {user?.role === 'tutor' && (
+          <section className="bg-indigo-600 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-indigo-500/20 text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-1000" />
+            <div className="relative z-10 space-y-2 text-center md:text-left">
+              <h3 className="text-3xl font-black tracking-tight">Chế độ Gia Sư đã bật! 🎓</h3>
+              <p className="text-indigo-100 font-bold">Kiểm tra lịch dạy và chuẩn bị bài giảng cho học sinh ngay nhé.</p>
+            </div>
+            <Link href="/my/sessions" className="relative z-10">
+              <Button className="h-14 px-10 rounded-2xl font-black bg-white text-indigo-600 hover:bg-indigo-50 shadow-xl transition-all flex items-center gap-2">
+                 Lịch dạy của tôi <ChevronRight size={20} className="stroke-[3px]" />
+              </Button>
+            </Link>
+          </section>
+        )}
 
         {/* Stats Row */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
