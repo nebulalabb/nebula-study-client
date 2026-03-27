@@ -12,6 +12,7 @@ interface HistoryItem {
   question_image_url?: string;
   input_type: 'text' | 'image' | 'mixed';
   solution: string;
+  steps?: any[];
   explanation?: string;
   confidence?: number;
   solve_time_ms?: number;
@@ -170,7 +171,7 @@ export function SolverHistory({ onSelect, refreshKey }: SolverHistoryProps) {
                         ? item.question_text.slice(0, 100) + (item.question_text.length > 100 ? '…' : '')
                         : '📷 Bài tập từ hình ảnh'}
                     </p>
-                    <div className="flex items-center gap-3 mt-1.5 overflow-hidden">
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                       <span className="px-2 py-0.5 bg-orange-50 text-[10px] font-black text-orange-600 rounded-md whitespace-nowrap uppercase tracking-wider">
                         {SUBJECT_LABELS[item.subject] ?? item.subject}
                       </span>
@@ -209,7 +210,7 @@ export function SolverHistory({ onSelect, refreshKey }: SolverHistoryProps) {
                           </p>
                           {onSelect && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); onSelect({ ...item, steps: [] }); }}
+                              onClick={(e) => { e.stopPropagation(); onSelect(item as any); }}
                               className="px-4 py-2 bg-white hover:bg-orange-500 hover:text-white border-2 border-orange-100 hover:border-orange-500 text-orange-600 text-xs font-black rounded-xl transition-all shadow-sm active:scale-95"
                             >
                               Xem chi tiết

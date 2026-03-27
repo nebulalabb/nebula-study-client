@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Trash2, Pin, Tag, Download, BookText, Sparkles, Clock, FileDigit, Calendar, Check, X } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2, Pin, Tag, Download, BookText, Sparkles, Clock, FileDigit, Calendar, Check, X, FileText } from 'lucide-react';
 import { SummaryResult } from '@/components/SummaryResult';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
@@ -15,15 +15,15 @@ interface NoteDetail {
   source_type: string;
   source_content: string;
   source_url: string;
+  source_filename?: string;
   word_count: number;
   tags: string[];
   is_pinned: boolean;
   created_at: string;
   summary: {
-    short_summary: string;
+    summary: string;
     bullet_points: string[];
-    keywords: string[];
-    full_summary: string | null;
+    keywords: { term: string; explanation: string }[];
   };
 }
 
@@ -159,8 +159,14 @@ export default function NoteViewPage() {
               <Pin size={20} className={note.is_pinned ? 'fill-current' : ''} />
             </button>
             {note.source_url && (
-              <a href={note.source_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-4 bg-orange-50 text-orange-600 font-black rounded-xl hover:bg-orange-100 transition-all text-sm group">
-                <Download size={18} className="group-hover:translate-y-0.5 transition-transform" /> <span className="hidden sm:inline">File gốc</span>
+              <a 
+                href={note.source_url} 
+                download={note.source_filename || 'original-file'} 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-orange-50 text-orange-600 font-bold rounded-2xl border-2 border-orange-50 transition-all shadow-sm"
+              >
+                <FileText size={18} /> File gốc
               </a>
             )}
             <button onClick={handleDelete} className="p-4 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm active:scale-90">
@@ -183,7 +189,7 @@ export default function NoteViewPage() {
             </div>
             
             <SummaryResult 
-              shortSummary={note.summary.short_summary}
+              summary={note.summary.summary}
               bulletPoints={note.summary.bullet_points}
               keywords={note.summary.keywords}
             />

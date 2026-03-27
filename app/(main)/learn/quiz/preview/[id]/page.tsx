@@ -113,32 +113,51 @@ export default function QuizPreviewPage() {
                      <MarkdownContent>{q.question_text}</MarkdownContent>
                    </div>
 
-                   {q.question_type !== 'fill_blank' && (
-                     <div className="grid sm:grid-cols-2 gap-4">
-                       {q.options.map((opt) => {
-                         const isCorrect = q.correct_answers?.includes(opt.id);
-                         return (
-                           <div 
-                             key={opt.id} 
-                             className={`px-6 py-4 bg-white rounded-2xl border-2 text-sm font-black flex items-center gap-4 transition-all ${
-                               isCorrect 
-                                 ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md shadow-emerald-500/10' 
-                                 : 'border-orange-50 text-gray-500'
-                             }`}
-                           >
-                              <span className={`w-8 h-8 rounded-lg text-xs font-black flex items-center justify-center shrink-0 border-2 ${
+                    {q.question_type === 'true_false' ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {['True', 'False'].map(val => {
+                          const isCorrect = q.correct_answers?.includes(val);
+                          return (
+                            <div key={val} className={`px-6 py-4 rounded-2xl border-2 flex items-center justify-between font-black ${
+                              isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-orange-50 text-gray-300'
+                            }`}>
+                              <span>{val === 'True' ? 'Đúng (True)' : 'Sai (False)'}</span>
+                              {isCorrect && <CheckCircle2 size={20} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : q.question_type === 'fill_blank' ? (
+                      <div className="p-6 bg-white border-2 border-emerald-100 rounded-2xl flex items-center gap-4">
+                         <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Đáp án đúng:</span>
+                         <span className="text-xl font-black text-emerald-600">{q.correct_answers?.[0]}</span>
+                      </div>
+                    ) : (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {q.options?.map((opt) => {
+                          const isCorrect = q.correct_answers?.includes(opt.id);
+                          return (
+                            <div 
+                              key={opt.id} 
+                              className={`px-6 py-4 bg-white rounded-2xl border-2 text-sm font-black flex items-center gap-4 transition-all ${
                                 isCorrect 
-                                  ? 'bg-emerald-500 text-white border-emerald-100' 
-                                  : 'bg-gray-50 text-gray-300 border-gray-100'
-                              }`}>
-                                {opt.id}
-                              </span>
-                              <span>{opt.text}</span>
-                           </div>
-                         );
-                       })}
-                     </div>
-                   )}
+                                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md shadow-emerald-500/10' 
+                                  : 'border-orange-50 text-gray-500'
+                              }`}
+                            >
+                               <span className={`w-8 h-8 rounded-lg text-xs font-black flex items-center justify-center shrink-0 border-2 ${
+                                 isCorrect 
+                                   ? 'bg-emerald-500 text-white border-emerald-100' 
+                                   : 'bg-gray-50 text-gray-300 border-gray-100'
+                               }`}>
+                                 {opt.id}
+                               </span>
+                               <span>{opt.text}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                    
                    {q.explanation && (
                      <div className="p-6 bg-white border-2 border-dashed border-orange-100 rounded-2xl space-y-2">

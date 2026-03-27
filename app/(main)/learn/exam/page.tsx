@@ -65,12 +65,12 @@ export default function ExamCatalogPage() {
                Chinh phục mọi kỳ thi với kho đề bám sát cấu trúc cực chuẩn, chấm điểm tự động tích tắc! 🚀
              </p>
           </div>
-          <button 
-            onClick={() => alert('Tính năng tự tạo đề đang phát triển')}
+          <Link 
+            href="/learn/exam/generate"
             className="group flex items-center gap-3 px-8 py-5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-black rounded-[1.5rem] transition-all shadow-xl shadow-orange-500/20 active:scale-95 whitespace-nowrap"
           >
             <Wand2 size={24} className="group-hover:rotate-12 transition-transform" /> Nhờ AI sinh đề ngay
-          </button>
+          </Link>
         </div>
 
         {/* Filters */}

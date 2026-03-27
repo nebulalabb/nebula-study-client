@@ -14,6 +14,8 @@ interface Flashcard {
   front: string;
   back: string;
   hint?: string;
+  image_url?: string;
+  sort_order?: number;
 }
 
 interface SetDetails {
@@ -21,6 +23,8 @@ interface SetDetails {
   title: string;
   description: string;
   subject: string;
+  is_public: boolean;
+  share_token: string;
   cards: Flashcard[];
 }
 
@@ -35,6 +39,8 @@ export default function FlashcardManagePage() {
   // Quick form for manual card adding
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
+  const [hint, setHint] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
@@ -48,21 +54,54 @@ export default function FlashcardManagePage() {
 
   const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!front || !back) return;
+    if (!front || !back || isAdding) return;
+
     setIsAdding(true);
     try {
       const { data } = await apiClient.post(`/flashcard/sets/${setId}/cards`, {
-        cards: [{ front, back }]
+        cards: [{ front, back, hint: hint || undefined }]
       });
+      
       const newCard = data.data.cards[0];
+
+      // Nếu có ảnh, upload ngay lập tắp
+      if (imageFile && newCard?.id) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        const imgRes = await apiClient.post(`/flashcard/cards/${newCard.id}/image`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        newCard.image_url = imgRes.data.data.image_url;
+      }
+
       setSetData(prev => prev ? { ...prev, cards: [...prev.cards, newCard] } : null);
       setFront('');
       setBack('');
+      setHint('');
+      setImageFile(null);
     } catch {
-      alert('Không thể thêm thẻ nè, thử lại nhé!');
+      alert('Không thể thêm thẻ rùi!');
     } finally {
       setIsAdding(false);
     }
+  };
+
+  const handleTogglePublic = async () => {
+    if (!setData) return;
+    try {
+      const newStatus = !setData.is_public;
+      await apiClient.patch(`/flashcard/sets/${setId}`, { is_public: newStatus });
+      setSetData({ ...setData, is_public: newStatus });
+    } catch {
+      alert('Không thể thay đổi trạng thái công khai rùi!');
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!setData?.share_token) return;
+    const url = `${window.location.origin}/learn/flashcard/public/${setData.share_token}`;
+    navigator.clipboard.writeText(url);
+    alert('Đã sao chép link chia sẻ vào bộ nhớ tạm! 🎉');
   };
 
   const handleDeleteSet = async () => {
@@ -115,7 +154,28 @@ export default function FlashcardManagePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button 
+              onClick={handleTogglePublic}
+              className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black transition-all border-2 ${
+                setData.is_public 
+                  ? 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100' 
+                  : 'bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500'
+              }`}
+            >
+              <Sparkles size={18} className={setData.is_public ? 'animate-pulse' : ''} />
+              {setData.is_public ? 'Đang Công khai' : 'Để Chế độ riêng tư'}
+            </button>
+
+            {setData.is_public && (
+              <button 
+                onClick={handleCopyLink}
+                className="flex items-center gap-2 px-6 py-4 bg-white border-2 border-orange-100 text-orange-600 rounded-2xl font-black transition-all hover:bg-orange-50 active:scale-95"
+              >
+                Copy Link chia sẻ
+              </button>
+            )}
+
             <Link
               href={`/learn/flashcard/study/${setId}`}
               className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-400 to-rose-500 shadow-xl shadow-orange-500/20 text-white rounded-2xl font-black transition-all hover:scale-105 active:scale-95"
@@ -166,6 +226,11 @@ export default function FlashcardManagePage() {
                         <div className="text-orange-600 font-bold text-base leading-relaxed">
                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{card.back}</ReactMarkdown>
                         </div>
+                        {card.image_url && (
+                          <div className="mt-4 rounded-2xl overflow-hidden border-2 border-orange-50 shadow-sm">
+                            <img src={card.image_url} alt="Card visual" className="w-full h-auto object-contain max-h-48" />
+                          </div>
+                        )}
                         {card.hint && (
                           <div className="mt-4 flex items-center gap-2 p-2 px-3 bg-amber-50 rounded-xl border border-amber-100 w-fit">
                             <span className="text-[10px]">💡</span>
@@ -207,6 +272,36 @@ export default function FlashcardManagePage() {
                     className="w-full px-5 py-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm resize-none"
                     rows={4}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gợi ý (tùy chọn)</label>
+                  <input 
+                    type="text" value={hint} onChange={e => setHint(e.target.value)} 
+                    placeholder="VD: Liên quan đến ánh sáng..." 
+                    className="w-full px-5 py-3 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hình ảnh minh họa</label>
+                  <div className="relative group/file">
+                    <input 
+                      type="file" accept="image/*"
+                      onChange={e => setImageFile(e.target.files?.[0] || null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className={`w-full px-5 py-3 rounded-2xl border-2 border-dashed transition-all flex items-center gap-3 ${
+                      imageFile ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50/50 border-gray-100 text-gray-400 group-hover/file:border-orange-200'
+                    }`}>
+                      <div className="p-1.5 bg-white rounded-lg shadow-sm">
+                        <Plus size={16} />
+                      </div>
+                      <span className="text-sm font-bold truncate">
+                        {imageFile ? imageFile.name : 'Chọn ảnh từ máy tính...'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <button 

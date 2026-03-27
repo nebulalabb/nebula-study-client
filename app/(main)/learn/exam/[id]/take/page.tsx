@@ -55,9 +55,9 @@ export default function ExamTakePage() {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (isAuto = false) => {
     if (isSubmitting) return;
-    if (!confirm('Bạn có chắc chắn muốn nộp bài bây giờ không?')) return;
+    if (!isAuto && !confirm('Bạn có chắc chắn muốn nộp bài bây giờ không?')) return;
     
     setIsSubmitting(true);
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
@@ -154,7 +154,7 @@ export default function ExamTakePage() {
                <p className="text-[10px] text-gray-400 font-black uppercase text-center tracking-[0.2em] mb-4 flex items-center gap-2">
                  <Sparkles size={12} className="text-orange-300" /> Thời gian còn lại
                </p>
-               <ExamTimer durationMinutes={duration} onTimeUp={handleSubmit} />
+               <ExamTimer durationMinutes={duration} onTimeUp={() => handleSubmit(true)} />
             </div>
 
             {/* Navigator */}
@@ -185,7 +185,7 @@ export default function ExamTakePage() {
 
                <div className="mt-10 pt-8 border-t border-orange-50/50">
                  <button
-                   onClick={handleSubmit}
+                   onClick={() => handleSubmit()}
                    disabled={isSubmitting}
                    className="w-full py-5 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:from-orange-600 hover:to-rose-600 transition-all shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-50 group"
                  >

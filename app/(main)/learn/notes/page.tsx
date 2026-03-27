@@ -27,7 +27,9 @@ export default function NotesHub() {
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    apiClient.get(`/note${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`)
+    const url = searchQuery ? `/note/search?q=${encodeURIComponent(searchQuery)}` : '/note';
+    
+    apiClient.get(url)
       .then((res) => {
         setNotes(res.data.data.items);
         setIsLoading(false);
@@ -41,7 +43,7 @@ export default function NotesHub() {
           <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-[2rem] flex items-center justify-center mx-auto shadow-lg rotate-3">
             <FileText size={40} />
           </div>
-          <h1 className="text-3xl font-black tracking-tight">AI Note & Summary</h1>
+          <h1 className="text-3xl font-black tracking-tight">Tóm Tắt Ý Chính</h1>
           <p className="text-gray-400 font-bold leading-relaxed">Đăng nhập để tóm tắt và quản lý ghi chú thông minh của bạn cùng Nebula Study ✨</p>
           <Link href="/login" className="block w-full px-8 py-4 bg-orange-500 text-white rounded-2xl font-black hover:bg-orange-600 shadow-xl shadow-orange-500/20 active:scale-95 transition-all text-lg">
             Đăng nhập ngay

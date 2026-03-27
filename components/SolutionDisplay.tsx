@@ -3,7 +3,8 @@
 import React from 'react';
 import { MarkdownContent } from '@/components/shared/MarkdownContent';
 import 'katex/dist/katex.min.css';
-import { CheckCircle2, ChevronDown, ClipboardList, Sparkles, Clock, Globe } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ClipboardList, Sparkles, Clock, Globe, Copy, MessageSquare, Send, Check, AlignLeft, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export interface SolverStep {
@@ -22,6 +23,10 @@ export interface SolutionData {
   confidence?: number;
   tokens_used?: number;
   solve_time_ms?: number;
+  question_text?: string;
+  question_image_url?: string;
+  created_at?: string;
+  parent_id?: string;
 }
 
 // ── Markdown renderer config ─────────────────────────────────────────────────
@@ -73,15 +78,74 @@ function StepCard({ step, isLast }: { step: SolverStep; isLast: boolean }) {
 // ── Main SolutionDisplay ─────────────────────────────────────────────────────
 interface SolutionDisplayProps {
   data: SolutionData;
+  onFollowUp?: (question: string) => void;
+  isFollowUpLoading?: boolean;
 }
 
-export function SolutionDisplay({ data }: SolutionDisplayProps) {
+export function SolutionDisplay({ data, onFollowUp, isFollowUpLoading }: SolutionDisplayProps) {
+  const [copied, setCopied] = React.useState(false);
+  const [showFollowUp, setShowFollowUp] = React.useState(false);
+  const [followUpQuery, setFollowUpQuery] = React.useState('');
+
   if (!data.steps?.length && !data.solution) return null;
+
+  const handleCopy = () => {
+    const textToCopy = `Câu hỏi: ${data.steps?.[0]?.title ?? 'Bài tập'}\n\nLời giải:\n${data.steps?.map(s => `Bước ${s.step_number}: ${s.title}\n${s.content}${s.formula ? `\nCông thức: ${s.formula}` : ''}`).join('\n\n')}\n\nKết quả: ${data.solution}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFollowUpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!followUpQuery.trim() || !onFollowUp) return;
+    onFollowUp(followUpQuery.trim());
+    setFollowUpQuery('');
+  };
 
   const confidencePercent = data.confidence ? Math.round(data.confidence * 100) : null;
 
   return (
     <div className="space-y-12 animate-in fade-in-0 slide-in-from-bottom-6 duration-700">
+      
+      {/* Question Image (if exists) */}
+      {data.question_image_url && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 ml-2">
+            <div className="p-2.5 bg-orange-100 rounded-2xl text-orange-50 shadow-sm">
+               <ImageIcon size={22} className="text-orange-500" />
+            </div>
+            <h2 className="text-2xl font-black text-gray-800 tracking-tight">
+              Câu hỏi bằng hình ảnh
+            </h2>
+          </div>
+          <div className="group relative w-fit max-w-full overflow-hidden rounded-[2.5rem] border-4 border-white shadow-xl shadow-orange-500/10 transition-all hover:scale-[1.01] hover:shadow-2xl hover:shadow-orange-500/20">
+            <img 
+              src={data.question_image_url} 
+              alt="Câu hỏi" 
+              className="max-h-[400px] min-w-[200px] w-auto object-contain bg-gray-50"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+      )}
+
+      {/* Question Text (if exists and meaningful) */}
+      {data.question_text && data.question_text !== '📷 Bài tập từ hình ảnh' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 ml-2">
+            <div className="p-2.5 bg-orange-100 rounded-2xl text-orange-50 shadow-sm">
+               <AlignLeft size={22} className="text-orange-500" />
+            </div>
+            <h2 className="text-2xl font-black text-gray-800 tracking-tight">
+              Câu hỏi của bạn
+            </h2>
+          </div>
+          <div className="p-8 rounded-[2.5rem] bg-gray-50 border-2 border-orange-50 font-bold text-gray-700 leading-relaxed shadow-inner">
+            <MarkdownContent>{data.question_text}</MarkdownContent>
+          </div>
+        </div>
+      )}
       
       {/* Steps */}
       {data.steps?.length > 0 && (
@@ -121,9 +185,69 @@ export function SolutionDisplay({ data }: SolutionDisplayProps) {
         </div>
       )}
 
+      {/* Actions */}
+      <div className="flex flex-col md:flex-row items-center gap-4 pt-4">
+        <button
+          onClick={handleCopy}
+          className={`w-full md:w-fit flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-sm ${
+            copied ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-orange-200 hover:text-orange-500'
+          }`}
+        >
+          {copied ? <Check size={18} /> : <Copy size={18} />}
+          {copied ? 'Đã copy!' : 'Copy lời giải'}
+        </button>
+
+        <button
+          onClick={() => setShowFollowUp(!showFollowUp)}
+          className={`w-full md:w-fit flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-sm ${
+            showFollowUp ? 'bg-orange-500 text-white shadow-orange-500/20' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-orange-200 hover:text-orange-500'
+          }`}
+        >
+          <MessageSquare size={18} />
+          {showFollowUp ? 'Đóng ô hỏi' : 'Hỏi thêm (Ask AI)'}
+        </button>
+      </div>
+
+      {/* Follow-up Question Area */}
+      {showFollowUp && (
+        <form 
+          onSubmit={handleFollowUpSubmit}
+          className="p-8 rounded-[2rem] bg-orange-50 border-2 border-orange-100 space-y-4 animate-in slide-in-from-top-4 duration-500"
+        >
+           <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-orange-200 text-orange-600 flex items-center justify-center">
+               <Sparkles size={16} />
+            </div>
+            <p className="text-sm font-black text-orange-900 tracking-tight">Hỏi thêm về bài giải này</p>
+          </div>
+          <div className="relative">
+            <textarea
+              value={followUpQuery}
+              onChange={(e) => setFollowUpQuery(e.target.value)}
+              placeholder="Ví dụ: Tại sao ở bước 2 lại dùng công thức đó vậy? Giải thích rõ hơn đoạn..."
+              className="w-full px-6 py-5 rounded-2xl border-2 border-white bg-white/50 text-sm font-bold focus:outline-none focus:border-orange-300 transition-all resize-none shadow-inner min-h-[100px]"
+              disabled={isFollowUpLoading}
+            />
+            <button
+              type="submit"
+              disabled={!followUpQuery.trim() || isFollowUpLoading}
+              className="absolute bottom-4 right-4 p-3 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+            >
+              {isFollowUpLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send size={18} />
+              )}
+            </button>
+          </div>
+          <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center italic">NebulaAI sẽ giải thích dựa trên ngữ cảnh của bài tập này ✨</p>
+        </form>
+      )}
+
       {/* Meta Stats */}
       {(data.explanation || confidencePercent) && (
-        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-orange-50">
+        <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-orange-50">
+          <div className="mr-auto" /> {/* Push to right */}
           {data.explanation && (
             <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-orange-50 text-[11px] font-black text-orange-600 shadow-sm uppercase tracking-wider">
                <Sparkles size={14} /> {data.explanation}

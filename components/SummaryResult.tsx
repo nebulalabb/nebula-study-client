@@ -5,12 +5,12 @@ import { AlignLeft, List, Key, Sparkles, Star } from 'lucide-react';
 import { MarkdownContent } from '@/components/shared/MarkdownContent';
 
 interface SummaryResultProps {
-  shortSummary: string;
+  summary: string;
   bulletPoints: string[];
-  keywords: string[];
+  keywords: { term: string; explanation: string }[];
 }
 
-export function SummaryResult({ shortSummary, bulletPoints, keywords }: SummaryResultProps) {
+export function SummaryResult({ summary, bulletPoints, keywords }: SummaryResultProps) {
   const [activeTab, setActiveTab] = useState<'bullets' | 'short' | 'keywords'>('bullets');
 
   return (
@@ -69,7 +69,7 @@ export function SummaryResult({ shortSummary, bulletPoints, keywords }: SummaryR
             <div className="relative p-8 md:p-10 bg-orange-50/50 rounded-[2.5rem] border-2 border-orange-50 shadow-inner group">
               <Sparkles className="absolute top-6 right-6 text-orange-200" size={32} />
               <div className="prose prose-lg max-w-none text-orange-950 italic leading-relaxed font-bold font-serif">
-                "{shortSummary}"
+                "{summary}"
               </div>
               <div className="mt-6 flex items-center gap-2 text-[10px] font-black text-orange-400 uppercase tracking-widest">
                 <Star size={12} fill="currentColor" /> Tóm tắt bởi Nebula AI
@@ -79,11 +79,15 @@ export function SummaryResult({ shortSummary, bulletPoints, keywords }: SummaryR
         )}
 
         {activeTab === 'keywords' && (
-          <div className="flex flex-wrap gap-3 animate-in fade-in slide-in-from-left-2 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-left-2 duration-500">
             {keywords.map((kw, idx) => (
-              <span key={idx} className="px-5 py-3 bg-white text-orange-700 border-2 border-orange-50 hover:border-orange-200 rounded-2xl text-sm font-black shadow-sm transition-all hover:-translate-y-1 hover:shadow-orange-500/5">
-                #{kw}
-              </span>
+              <div key={idx} className="p-5 bg-[#FFF9F5] border-2 border-orange-100 hover:border-orange-500 rounded-[2rem] transition-all hover:shadow-lg hover:shadow-orange-500/5 group/kw">
+                <div className="flex items-center gap-2 mb-2">
+                   <div className="w-2 h-2 rounded-full bg-orange-500 group-hover/kw:animate-ping" />
+                   <span className="font-black text-orange-700 text-lg uppercase tracking-tight">{kw.term}</span>
+                </div>
+                <p className="text-gray-400 font-bold text-sm leading-relaxed">{kw.explanation}</p>
+              </div>
             ))}
           </div>
         )}

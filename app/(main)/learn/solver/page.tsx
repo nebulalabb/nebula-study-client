@@ -79,7 +79,7 @@ function ErrorBanner({ error, onDismiss }: { error: string; onDismiss: () => voi
 type InputMode = 'text' | 'image';
 
 export default function SolverPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   // Form state
   const [inputMode, setInputMode] = useState<InputMode>('text');
@@ -95,6 +95,7 @@ export default function SolverPage() {
   const [solution, setSolution] = useState<SolutionData | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [historyKey, setHistoryKey] = useState(0);
+  const [isFollowUpLoading, setIsFollowUpLoading] = useState(false);
 
   // Auto-resize textarea
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -156,10 +157,50 @@ export default function SolverPage() {
     }
   };
 
+  const handleFollowUp = async (question: string) => {
+    if (!solution?.id || isFollowUpLoading) return;
+
+    setIsFollowUpLoading(true);
+    setError(null);
+
+    try {
+      const { data } = await apiClient.post('/solver/solve', {
+        question_text: question,
+        subject: solution.subject || subject || undefined,
+        parent_id: solution.id,
+      });
+
+      const newSolution = data.data as SolutionData;
+      setSolution(newSolution);
+      invalidateQuotaCache();
+      setHistoryKey((k) => k + 1);
+
+      // Scroll to result
+      setTimeout(() => {
+        document.getElementById('solution-output')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    } catch (err: any) {
+      setError(err?.response?.data?.error?.message || 'Không thể gửi câu hỏi hỏi thêm. Thử lại sau nhé!');
+    } finally {
+      setIsFollowUpLoading(false);
+    }
+  };
+
   // Keyboard shortcut: Ctrl+Enter to submit
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleSubmit();
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-[#FFF9F5] flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-orange-500 font-black animate-pulse uppercase tracking-widest text-xs">Đang tải dữ liệu... ✨</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -364,7 +405,11 @@ export default function SolverPage() {
                       <RotateCcw size={14} /> Làm câu mới
                     </button>
                   </div>
-                  <SolutionDisplay data={solution} />
+                  <SolutionDisplay 
+                    data={solution} 
+                    onFollowUp={handleFollowUp}
+                    isFollowUpLoading={isFollowUpLoading}
+                  />
                 </div>
               )}
             </div>

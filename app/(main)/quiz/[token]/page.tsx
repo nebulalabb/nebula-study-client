@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { CheckCircle2, ChevronRight, Hash, Play, HelpCircle, Clock, Timer, Sparkles, Rocket, ArrowLeft, Trophy } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Hash, Play, HelpCircle, Clock, Timer, Sparkles, Rocket, ArrowLeft, Trophy, X, User } from 'lucide-react';
 import { MarkdownContent } from '@/components/shared/MarkdownContent';
 
 interface Option {
@@ -39,6 +39,9 @@ export default function TakeQuizPage() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [guestName, setGuestName] = useState('');
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   
   // Timer
   const [timeLeft, setTimeLeft] = useState(0); 
@@ -76,8 +79,9 @@ export default function TakeQuizPage() {
         answer_text: typeof answers[q.id] === 'string' ? answers[q.id] : ''
       }));
 
-      const res = await apiClient.post(`/quiz/share/${token}/submit`, {
-        answers: formattedAnswers
+      const res = await apiClient.post(`/quiz/${data?.quiz.id}/attempt`, {
+        answers: formattedAnswers,
+        guest_name: guestName || undefined
       });
       
       const attemptId = res.data.data.attempt_id;
@@ -120,6 +124,45 @@ export default function TakeQuizPage() {
     const s = seconds % 60;
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
+
+  if (!hasStarted) {
+    return (
+      <div className="min-h-screen bg-[#FFF9F5] flex items-center justify-center p-6">
+        <div className="max-w-xl w-full bg-white border-4 border-orange-50 rounded-[3.5rem] p-12 shadow-2xl text-center space-y-10 relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-[4rem] opacity-50 -mr-10 -mt-10" />
+           <div className="w-24 h-24 bg-orange-100 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-lg relative z-10">
+              <Trophy size={48} className="text-orange-500" strokeWidth={2.5} />
+           </div>
+           <div className="space-y-4 relative z-10">
+              <h2 className="text-4xl font-black text-gray-950 tracking-tighter uppercase">{data.quiz.title}</h2>
+              <p className="text-gray-400 font-bold">Bộ đề gồm {data.quiz.question_count} câu hỏi. Bạn đã sẵn sàng chinh phục thử thách này chưa? ✨</p>
+           </div>
+           
+           <div className="space-y-6 relative z-10">
+              <div className="space-y-3">
+                 <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center justify-center gap-2">
+                    <User size={12} /> Tên của bạn (Tùy chọn)
+                 </label>
+                 <input 
+                   type="text"
+                   className="w-full px-8 py-4 bg-[#FFF9F5] border-2 border-orange-50 rounded-2xl font-black text-center text-orange-600 outline-none focus:border-orange-200 transition-all placeholder:text-gray-200"
+                   placeholder="Nhập biệt danh để lưu kết quả..."
+                   value={guestName}
+                   onChange={e => setGuestName(e.target.value)}
+                 />
+              </div>
+
+              <button 
+                onClick={() => setHasStarted(true)}
+                className="w-full py-5 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-[2rem] font-black shadow-2xl shadow-orange-500/30 active:scale-95 transition-all text-xl flex items-center justify-center gap-3 group"
+              >
+                Bắt đầu làm bài <Play size={24} fill="white" className="group-hover:translate-x-1 transition-transform" />
+              </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FFF9F5] flex flex-col items-center justify-center py-12 px-6">
@@ -173,32 +216,72 @@ export default function TakeQuizPage() {
                <MarkdownContent>{currentQuestion.question_text}</MarkdownContent>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {currentQuestion.options.map((opt) => {
-                const isSelected = answers[currentQuestion.id] === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => selectOption(currentQuestion.id, opt.id)}
-                    className={`group/opt relative px-8 py-6 rounded-[2rem] border-4 text-left transition-all active:scale-[0.98] ${
-                      isSelected
-                        ? 'bg-orange-500 border-orange-100 text-white shadow-2xl shadow-orange-500/30'
-                        : 'bg-white border-orange-50 text-gray-500 hover:border-orange-200 hover:bg-orange-50/20'
-                    }`}
-                  >
-                    <div className="flex items-center gap-6">
-                       <span className={`w-12 h-12 rounded-2xl text-lg font-black flex items-center justify-center shrink-0 border-4 transition-all ${
-                         isSelected ? 'bg-white text-orange-600 border-orange-100' : 'bg-orange-50 text-orange-200 border-orange-100 group-hover/opt:bg-orange-100 group-hover/opt:text-orange-500'
-                       }`}>
-                         {opt.id}
-                       </span>
-                       <span className={`text-lg font-black tracking-tight ${isSelected ? 'text-white' : 'text-gray-700 group-hover/opt:text-orange-600'}`}>
-                         {opt.text}
-                       </span>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="space-y-8">
+               {currentQuestion.question_type === 'true_false' ? (
+                 <div className="grid grid-cols-2 gap-8">
+                    {['True', 'False'].map((val) => {
+                      const isSelected = answers[currentQuestion.id] === val;
+                      return (
+                        <button
+                          key={val}
+                          onClick={() => selectOption(currentQuestion.id, val)}
+                          className={`px-8 py-10 rounded-[2.5rem] border-4 flex flex-col items-center justify-center gap-4 transition-all active:scale-95 ${
+                            isSelected
+                              ? (val === 'True' ? 'bg-emerald-500 border-emerald-100 text-white shadow-2xl shadow-emerald-500/20' : 'bg-rose-500 border-rose-100 text-white shadow-2xl shadow-rose-500/20')
+                              : 'bg-white border-orange-50 text-gray-400 hover:border-orange-200'
+                          }`}
+                        >
+                           <div className={`w-20 h-20 rounded-full flex items-center justify-center border-4 ${
+                             isSelected ? 'bg-white/20 border-white/40' : (val === 'True' ? 'bg-emerald-50 text-emerald-300' : 'bg-rose-50 text-rose-300')
+                           }`}>
+                              {val === 'True' ? <CheckCircle2 size={40} strokeWidth={3} /> : <X size={40} strokeWidth={3} />}
+                           </div>
+                           <span className="text-2xl font-black uppercase tracking-widest">{val === 'True' ? 'Đúng' : 'Sai'}</span>
+                        </button>
+                      );
+                    })}
+                 </div>
+               ) : currentQuestion.question_type === 'fill_blank' ? (
+                 <div className="space-y-4">
+                    <label className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] ml-2">Nhập câu trả lời của bạn:</label>
+                    <input 
+                      type="text"
+                      autoFocus
+                      className="w-full px-10 py-8 bg-[#FFF9F5] border-4 border-orange-50 rounded-[2.5rem] focus:border-orange-200 focus:ring-8 focus:ring-orange-50 outline-none font-black text-2xl text-orange-600 transition-all placeholder:text-gray-200 text-center"
+                      placeholder="..."
+                      value={answers[currentQuestion.id] || ''}
+                      onChange={e => setAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
+                    />
+                 </div>
+               ) : (
+                 <div className="grid md:grid-cols-2 gap-6">
+                    {currentQuestion.options.map((opt) => {
+                      const isSelected = answers[currentQuestion.id] === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => selectOption(currentQuestion.id, opt.id)}
+                          className={`group/opt relative px-8 py-6 rounded-[2rem] border-4 text-left transition-all active:scale-[0.98] ${
+                            isSelected
+                              ? 'bg-orange-500 border-orange-100 text-white shadow-2xl shadow-orange-500/30'
+                              : 'bg-white border-orange-50 text-gray-500 hover:border-orange-200 hover:bg-orange-50/20'
+                          }`}
+                        >
+                          <div className="flex items-center gap-6">
+                             <span className={`w-12 h-12 rounded-2xl text-lg font-black flex items-center justify-center shrink-0 border-4 transition-all ${
+                               isSelected ? 'bg-white text-orange-600 border-orange-100' : 'bg-orange-50 text-orange-200 border-orange-100 group-hover/opt:bg-orange-100 group-hover/opt:text-orange-500'
+                             }`}>
+                               {opt.id}
+                             </span>
+                             <span className={`text-lg font-black tracking-tight ${isSelected ? 'text-white' : 'text-gray-700 group-hover/opt:text-orange-600'}`}>
+                               {opt.text}
+                             </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                 </div>
+               )}
             </div>
 
             <div className="pt-10 border-t-2 border-orange-50 flex items-center justify-between gap-6">

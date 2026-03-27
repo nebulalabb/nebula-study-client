@@ -58,7 +58,7 @@ const tools = [
     quotaLabel: 'Đề tháng này',
   },
   {
-    title: 'Micro-learning',
+    title: 'Học Nhanh Mỗi Ngày',
     description: '5 phút mỗi ngày — duy trì streak học tập liên tục',
     icon: Clock,
     iconColor: 'text-rose-500',
@@ -68,7 +68,7 @@ const tools = [
     quotaLabel: null,
   },
   {
-    title: 'AI Note & Summary',
+    title: 'Tóm Tắt Ý Chính',
     description: 'Tóm tắt bài giảng dài thành ý chính trong vài giây',
     icon: FileText,
     iconColor: 'text-emerald-500',
@@ -78,7 +78,7 @@ const tools = [
     quotaLabel: 'Lượt tóm tắt hôm nay',
   },
   {
-    title: 'Tutor Marketplace',
+    title: 'Thuê Gia Sư',
     description: 'Kết nối với gia sư hàng đầu — minh bạch về giá và chất lượng',
     icon: Users,
     iconColor: 'text-indigo-500',
@@ -88,7 +88,7 @@ const tools = [
     quotaLabel: null,
   },
   {
-    title: 'Quiz Generator',
+    title: 'Tạo Bài Test Nhanh',
     description: 'Tự tạo bộ câu hỏi ôn tập từ bất kỳ tài liệu nào',
     icon: CheckCircle,
     iconColor: 'text-sky-500',

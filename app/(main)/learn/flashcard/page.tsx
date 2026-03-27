@@ -21,12 +21,16 @@ export default function FlashcardHub() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [stats, setStats] = useState<{ total_reviewed: number; memory_rate: number; streak: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) return;
     
+    // Fetch stats
+    apiClient.get('/flashcard/stats').then(res => setStats(res.data.data)).catch(() => {});
+
     // Fetch user sets
     apiClient.get('/flashcard/sets').then((res) => {
       setSets(res.data.data.items);
@@ -88,6 +92,48 @@ export default function FlashcardHub() {
             Tạo bộ thẻ mới
           </Link>
         </div>
+
+        {/* ── Stats Dashboard ─────────────────────────────────────────────────── */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <div className="bg-white p-6 rounded-[2rem] border-2 border-orange-50 shadow-sm flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 shrink-0">
+                <CalendarCheck size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chuỗi học</p>
+                <p className="text-xl font-black text-gray-800">{stats.streak} ngày 🔥</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-[2rem] border-2 border-orange-50 shadow-sm flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600 shrink-0">
+                <Plus size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Đã ôn tập</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_reviewed} thẻ</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-[2rem] border-2 border-orange-50 shadow-sm flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+                <Brain size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tỷ lệ nhớ</p>
+                <p className="text-xl font-black text-gray-800">{stats.memory_rate}% ✨</p>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-[2rem] border-2 border-orange-50 shadow-sm flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                <Layers size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tổng bộ thẻ</p>
+                <p className="text-xl font-black text-gray-800">{sets.length} bộ</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Due Review Banner ──────────────────────────────────────────────── */}
         {dueCount !== null && (

@@ -139,6 +139,37 @@ export default function ExamResultPage() {
                </div>
                <p className="text-center text-[10px] text-gray-400 font-bold mt-4 uppercase tracking-wider">Dựa trên kết quả thực tế của bạn ✨</p>
             </div>
+
+            {/* Recommendations */}
+            <div className="bg-white border-2 border-orange-50 p-10 rounded-[3rem] shadow-xl shadow-orange-500/5 space-y-6">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 bg-emerald-100 text-emerald-500 rounded-xl">
+                    <Sparkles size={20} />
+                 </div>
+                 <h3 className="font-black text-gray-800 tracking-tight">Gợi ý lộ trình</h3>
+               </div>
+
+               <div className="space-y-4">
+                 {radarData.filter(d => d['Độ chuẩn xác (%)'] < 60).slice(0, 2).map((d, i) => (
+                   <div key={i} className="p-6 bg-orange-50/50 rounded-2xl border border-orange-100 flex flex-col gap-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Bạn yếu phần:</p>
+                      <p className="font-black text-orange-600 tracking-tight">{d.topic}</p>
+                      <Link 
+                         href={`/learn/flashcard?search=${encodeURIComponent(d.topic)}`}
+                         className="mt-2 inline-flex items-center gap-2 text-xs font-black text-white bg-orange-500 px-4 py-3 rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 active:scale-95 w-fit"
+                      >
+                         Luyện Flashcard ngay <ChevronLeft size={14} className="rotate-180" />
+                      </Link>
+                   </div>
+                 ))}
+                 {radarData.filter(d => d['Độ chuẩn xác (%)'] < 60).length === 0 && (
+                   <div className="p-8 text-center bg-emerald-50/30 rounded-2xl border-2 border-dashed border-emerald-100">
+                      <p className="text-emerald-600 font-black text-sm italic">Tuyệt vời! Bạn không có chủ đề nào quá yếu. Ghé thăm kho Flashcard để nâng cao kiến thức nhé!</p>
+                      <Link href="/learn/flashcard" className="mt-4 inline-block text-emerald-600 font-black underline text-sm uppercase tracking-widest">Khám phá Flashcard</Link>
+                   </div>
+                 )}
+               </div>
+            </div>
           </div>
 
           {/* Giải thích chi tiết (Phải) */}

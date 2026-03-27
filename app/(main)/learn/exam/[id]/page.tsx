@@ -23,10 +23,11 @@ export default function ExamOverviewPage() {
   const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
-    // Fetch exams list and find current one
-    apiClient.get('/exam').then(res => {
-      const found = res.data.data.items.find((x: any) => x.id === id);
-      setExam(found);
+    apiClient.get('/exam/' + id).then(res => {
+      setExam(res.data.data);
+      setIsLoading(false);
+    }).catch(() => {
+      setExam(null);
       setIsLoading(false);
     });
   }, [id]);
