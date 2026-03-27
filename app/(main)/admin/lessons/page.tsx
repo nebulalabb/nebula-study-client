@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import CuteModal from '@/components/ui/CuteModal';
 
 export default function AdminLessonsPage() {
   const [lessons, setLessons] = useState<any[]>([]);
@@ -11,6 +12,19 @@ export default function AdminLessonsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ topic_id: '', title: '', content: '', day_index: 1, estimated_minutes: 5 });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [modal, setModal] = useState<{isOpen: boolean, config: any}>({ 
+    isOpen: false, 
+    config: { title: '', description: '', type: 'info' } 
+  });
+
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ isOpen: true, config: { title, description, type } });
+  };
+
+  const showConfirm = (title: string, description: string, onConfirm: () => void) => {
+    setModal({ isOpen: true, config: { title, description, type: 'confirm', onConfirm } });
+  };
 
   const fetchLessons = async () => {
     setIsLoading(true);
@@ -28,23 +42,30 @@ export default function AdminLessonsPage() {
   useEffect(() => { fetchLessons(); }, []);
 
   const createLesson = async () => {
-    if (!form.topic_id || !form.title || !form.content) return alert('Vui lòng điền đầy đủ thông tin');
+    if (!form.topic_id || !form.title || !form.content) return showAlert('Thiếu thông tin', 'Vui lòng điền đầy đủ các thông tin bắt buộc nhé! ✨', 'error');
     setIsSubmitting(true);
     try {
       await apiClient.post('/admin/lessons', form);
       setShowForm(false);
       setForm({ topic_id: '', title: '', content: '', day_index: 1, estimated_minutes: 5 });
       fetchLessons();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+      showAlert('Thành công', 'Đã thêm bài học mới thành công! 🌟', 'success');
+    } catch (err: any) { showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error'); }
     finally { setIsSubmitting(false); }
   };
 
   const deleteLesson = async (id: string) => {
-    if (!confirm('Xoá bài học này?')) return;
-    try {
-      await apiClient.delete(`/admin/lessons/${id}`);
-      fetchLessons();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    showConfirm(
+      'Xác nhận xoá',
+      'Bạn có chắc chắn muốn xoá bài học này không? Hành động này không thể hoàn tác. 🗑️',
+      async () => {
+        try {
+          await apiClient.delete(`/admin/lessons/${id}`);
+          fetchLessons();
+          showAlert('Thành công', 'Đã xoá bài học thành công! ✨', 'success');
+        } catch (err: any) { showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error'); }
+      }
+    );
   };
 
   return (
@@ -147,6 +168,16 @@ export default function AdminLessonsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Custom Modal */}
+      <CuteModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.config.onConfirm}
+        title={modal.config.title}
+        description={modal.config.description}
+        type={modal.config.type}
+      />
     </div>
   );
 }

@@ -3,10 +3,24 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import CuteModal from '@/components/ui/CuteModal';
 
 export default function AdminExamsPage() {
   const [exams, setExams] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [modal, setModal] = useState<{isOpen: boolean, config: any}>({ 
+    isOpen: false, 
+    config: { title: '', description: '', type: 'info' } 
+  });
+
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ isOpen: true, config: { title, description, type } });
+  };
+
+  const showConfirm = (title: string, description: string, onConfirm: () => void) => {
+    setModal({ isOpen: true, config: { title, description, type: 'confirm', onConfirm } });
+  };
 
   const fetchExams = async () => {
     setIsLoading(true);
@@ -23,15 +37,22 @@ export default function AdminExamsPage() {
     try {
       await apiClient.patch(`/admin/exams/${id}/publish`, { is_public: !is_public });
       fetchExams();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+      showAlert('Thành công', `Đã ${!is_public ? 'hiển thị' : 'ẩn'} đề thi thành công! ✨`, 'success');
+    } catch (err: any) { showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error'); }
   };
 
   const deleteExam = async (id: string) => {
-    if (!confirm('Xoá đề thi này vĩnh viễn?')) return;
-    try {
-      await apiClient.delete(`/admin/exams/${id}`);
-      fetchExams();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    showConfirm(
+      'Xác nhận xoá đề thi',
+      'Bạn có thực sự muốn xoá đề thi này vĩnh viễn không? Mọi dữ liệu liên quan sẽ bị mất. 🗑️',
+      async () => {
+        try {
+          await apiClient.delete(`/admin/exams/${id}`);
+          fetchExams();
+          showAlert('Thành công', 'Đã xoá đề thi thành công! 🌟', 'success');
+        } catch (err: any) { showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error'); }
+      }
+    );
   };
 
   return (
@@ -86,6 +107,16 @@ export default function AdminExamsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Custom Modal */}
+      <CuteModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.config.onConfirm}
+        title={modal.config.title}
+        description={modal.config.description}
+        type={modal.config.type}
+      />
     </div>
   );
 }

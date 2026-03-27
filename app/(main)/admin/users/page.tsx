@@ -3,12 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Search, Crown } from 'lucide-react';
+import CuteModal from '@/components/ui/CuteModal';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [total, setTotal] = useState(0);
+
+  const [modal, setModal] = useState<{isOpen: boolean, config: any}>({ 
+    isOpen: false, 
+    config: { title: '', description: '', type: 'info' } 
+  });
+
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ isOpen: true, config: { title, description, type } });
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -26,7 +36,8 @@ export default function AdminUsersPage() {
     try {
       await apiClient.patch('/admin/users/' + id, patch);
       fetchUsers();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+      showAlert('Thành công', 'Cập nhật trạng thái người dùng thành công! ✨', 'success');
+    } catch (err: any) { showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error'); }
   };
 
   return (
@@ -106,6 +117,16 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Custom Modal */}
+      <CuteModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.config.onConfirm}
+        title={modal.config.title}
+        description={modal.config.description}
+        type={modal.config.type}
+      />
     </div>
   );
 }

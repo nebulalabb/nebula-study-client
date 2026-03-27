@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Star, Check, X, AlertTriangle } from 'lucide-react';
+import CuteModal from '@/components/ui/CuteModal';
 
 const STATUS_TABS = [
   { value: 'pending', label: 'Chờ duyệt', color: 'text-amber-600' },
@@ -14,6 +15,19 @@ export default function AdminTutorsPage() {
   const [status, setStatus] = useState('pending');
   const [tutors, setTutors] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [modal, setModal] = useState<{isOpen: boolean, config: any}>({ 
+    isOpen: false, 
+    config: { title: '', description: '', type: 'info' } 
+  });
+
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ isOpen: true, config: { title, description, type } });
+  };
+
+  const showConfirm = (title: string, description: string, onConfirm: () => void) => {
+    setModal({ isOpen: true, config: { title, description, type: 'confirm', onConfirm } });
+  };
 
   const fetchTutors = async () => {
     setIsLoading(true);
@@ -27,11 +41,25 @@ export default function AdminTutorsPage() {
   useEffect(() => { fetchTutors(); }, [status]);
 
   const doAction = async (id: string, action: string) => {
-    if (!confirm(`Bạn chắc muốn "${action}" gia sư này?`)) return;
-    try {
-      await apiClient.patch(`/admin/tutors/${id}/${action}`);
-      fetchTutors();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    const actionMap: any = {
+      approve: 'duyệt',
+      reject: 'từ chối',
+      suspend: 'đình chỉ'
+    };
+
+    showConfirm(
+      'Xác nhận hành động',
+      `Bạn chắc chắn muốn ${actionMap[action] || action} gia sư này không? ✨`,
+      async () => {
+        try {
+          await apiClient.patch(`/admin/tutors/${id}/${action}`);
+          fetchTutors();
+          showAlert('Thành công', `Đã thực hiện ${actionMap[action] || action} gia sư thành công! 🌟`, 'success');
+        } catch (err: any) { 
+          showAlert('Lỗi hệ thống', err.response?.data?.message || err.message, 'error');
+        }
+      }
+    );
   };
 
   const fmtMoney = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
@@ -113,6 +141,16 @@ export default function AdminTutorsPage() {
           ))}
         </div>
       )}
+
+      {/* Custom Modal */}
+      <CuteModal 
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={modal.config.onConfirm}
+        title={modal.config.title}
+        description={modal.config.description}
+        type={modal.config.type}
+      />
     </div>
   );
 }
