@@ -17,11 +17,14 @@ import {
   Heart,
   User,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  AlignLeft,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 interface StudentStats {
   total_solved: number;
@@ -42,10 +45,13 @@ interface UserProfile {
   streak: number;
   role: string;
   created_at: string;
+  friendship_status: 'pending' | 'accepted' | null;
+  is_friend_requester: boolean;
 }
 
 export default function PublicProfilePage() {
   const { id } = useParams();
+  const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<StudentStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,6 +117,31 @@ export default function PublicProfilePage() {
     crown: "bg-indigo-400",
   };
 
+  const isOwnProfile = currentUser?.id === id;
+
+  const handleFriendRequest = async () => {
+    if (!profile || !id || profile.friendship_status !== null || isOwnProfile) return;
+    setLoading(true);
+    try {
+      await apiClient.post(`/social/friends/request/${id}`);
+      setProfile(prev => prev ? { ...prev, friendship_status: 'pending', is_friend_requester: true } : null);
+    } catch (err) {
+      console.error('Failed to send friend request:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFriendButtonLabel = () => {
+    if (profile.friendship_status === 'accepted') return 'Bạn bè';
+    if (profile.friendship_status === 'pending') {
+      return profile.is_friend_requester ? 'Đã gửi yêu cầu' : 'Chấp nhận kết bạn';
+    }
+    return 'Kết bạn ngay';
+  };
+
+  const isFriendActionDisabled = profile.friendship_status === 'accepted' || (profile.friendship_status === 'pending' && profile.is_friend_requester);
+
   return (
     <div className="min-h-screen bg-[#FFF9F5] pb-24 selection:bg-orange-200 overflow-hidden relative">
       {/* Background Decor */}
@@ -173,11 +204,21 @@ export default function PublicProfilePage() {
                    </div>
                 </div>
 
-                <div className="pt-4">
-                   <Button className="w-full rounded-2xl h-14 font-black bg-white text-orange-600 hover:bg-orange-50 shadow-xl shadow-orange-900/10 active:scale-95 transition-all text-lg border-none flex items-center justify-center gap-2">
-                      <Flame size={20} fill="currentColor" /> Kết bạn ngay
-                   </Button>
-                </div>
+                {!isOwnProfile && (
+                  <div className="pt-4">
+                     <Button 
+                       onClick={handleFriendRequest}
+                       disabled={isFriendActionDisabled}
+                       className="w-full rounded-2xl h-14 font-black bg-white text-orange-600 hover:bg-orange-50 shadow-xl shadow-orange-900/10 active:scale-95 transition-all text-lg border-none flex items-center justify-center gap-2 disabled:opacity-70 disabled:scale-100"
+                     >
+                        {profile.friendship_status === 'pending' && !profile.is_friend_requester ? (
+                          <> <Zap size={20} fill="currentColor" /> {getFriendButtonLabel()} </>
+                        ) : (
+                          <> <Flame size={20} fill={profile.friendship_status === 'accepted' ? 'currentColor' : 'none'} /> {getFriendButtonLabel()} </>
+                        )}
+                     </Button>
+                  </div>
+                )}
              </div>
           </div>
 

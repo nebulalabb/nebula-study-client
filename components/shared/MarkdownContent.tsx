@@ -21,11 +21,16 @@ interface MarkdownContentProps {
  * 4. Custom NebulaStudy styling (Orange accents, black font weights)
  */
 export function MarkdownContent({ children, className = '' }: MarkdownContentProps) {
-  // Fix common control character issues where \f (form feed) or others are sent in the string
-  // \f (U+000C) is often interpreted as \frac if wrongly escaped in JSON
-  const fixedContent = children
-    .replace(/\f/g, '\\f') // Fix form feed to \f
-    .replace(/\n/g, '  \n'); // Ensure line breaks are preserved in markdown if needed (optional)
+  // Fix common control character issues and auto-wrap raw LaTeX if needed
+  const fixedContent = React.useMemo(() => {
+    let text = children.replace(/\f/g, '\\f').replace(/\n/g, '  \n');
+    
+    // If the text looks like raw LaTeX (starts with \ and has no math delimiters), wrap it
+    if (text.trim().startsWith('\\') && !text.includes('$')) {
+       return `$$\n${text.trim()}\n$$`;
+    }
+    return text;
+  }, [children]);
 
   return (
     <div className={`prose dark:prose-invert max-w-none ${className}`}>

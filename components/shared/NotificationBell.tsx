@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useSocket } from '@/context/socket-context';
+import { useRouter } from 'next/navigation';
 
 const ICON_MAP: Record<string, string> = {
   flashcard_review_due: '🧠',
@@ -27,6 +28,7 @@ export function NotificationBell() {
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { socket } = useSocket();
+  const router = useRouter();
 
   // Close when clicking outside
   useEffect(() => {
@@ -57,8 +59,9 @@ export function NotificationBell() {
   useEffect(() => {
     if (socket) {
       const handleNotification = (notif: any) => {
-          setUnreadCount(prev => prev + 1);
-          setNotifications(prev => [notif, ...prev.slice(0, 4)]); // Keep top 5
+        if (!notif) return;
+        setUnreadCount(prev => prev + 1);
+        setNotifications(prev => [notif, ...prev.slice(0, 4)]); // Keep top 5
       };
       socket.on('notification', handleNotification);
       return () => {
@@ -82,6 +85,40 @@ export function NotificationBell() {
       setUnreadCount(0);
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     } catch { /* silent */ }
+  };
+
+  const handleNotificationClick = async (n: any) => {
+    setIsOpen(false);
+    
+    // Mark as read if not already
+    if (!n.is_read) {
+      try {
+        await apiClient.patch(`/notification/${n.id}/read`);
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev => prev.map(notif => 
+          notif.id === n.id ? { ...notif, is_read: true } : notif
+        ));
+      } catch (err) {
+        console.error('Failed to mark notification as read:', err);
+      }
+    }
+
+    // Navigate based on type
+    switch (n.type) {
+      case 'friend_request':
+        router.push('/social');
+        break;
+      case 'friend_accepted':
+        const friendId = n.data?.friend_id || n.data?.requester_id;
+        if (friendId) router.push(`/user/${friendId}`);
+        else router.push('/social');
+        break;
+      case 'flashcard_review_due':
+        router.push('/learn/flashcards');
+        break;
+      default:
+        router.push('/notifications');
+    }
   };
 
   return (
@@ -125,11 +162,14 @@ export function NotificationBell() {
                 <p className="text-sm text-gray-400 font-medium">Chưa có thông báo nào</p>
               </div>
             )}
-            {!isLoading && notifications.map(n => (
-              <div
-                key={n.id}
-                className={'flex gap-3 px-5 py-4 border-b border-gray-50 dark:border-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors ' + (!n.is_read ? 'bg-sky-50/50 dark:bg-sky-900/10' : '')}
-              >
+            {!isLoading && notifications.map(n => {
+              if (!n) return null;
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => handleNotificationClick(n)}
+                  className={'w-full text-left flex gap-3 px-5 py-4 border-b border-gray-50 dark:border-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors ' + (!n.is_read ? 'bg-sky-50/50 dark:bg-sky-900/10' : '')}
+                >
                 <div className="text-2xl w-8 h-8 flex items-center justify-center shrink-0 mt-0.5">
                   {ICON_MAP[n.type] || '📣'}
                 </div>
@@ -142,9 +182,10 @@ export function NotificationBell() {
                   <p className="text-[10px] text-gray-400 mt-1">
                     {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: vi })}
                   </p>
-                </div>
-              </div>
-            ))}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Footer */}

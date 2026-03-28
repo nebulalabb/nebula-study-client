@@ -65,7 +65,7 @@ function StepCard({ step, isLast }: { step: SolverStep; isLast: boolean }) {
             </div>
             {step.formula && (
               <div className="mt-4 px-6 py-5 bg-orange-50/50 rounded-[2rem] border-2 border-orange-100 overflow-x-auto text-center shadow-sm">
-                <MarkdownContent>{step.formula}</MarkdownContent>
+                <MarkdownContent>{`$$\n${step.formula}\n$$`}</MarkdownContent>
               </div>
             )}
           </div>
