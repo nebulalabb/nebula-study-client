@@ -64,7 +64,7 @@ export default function NotFound() {
 
         {/* App Footer Quote */}
         <p className="mt-16 text-sm font-medium text-gray-400 italic">
-          "Học tập là một hành trình dài, đôi khi chúng ta sẽ đi lạc một chút!" — NebulaStudy
+          "Học tập là một hành trình dài, đôi khi chúng ta sẽ đi lạc một chút!" — Nebula Study
         </p>
       </div>
 

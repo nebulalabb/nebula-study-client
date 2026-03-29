@@ -11,8 +11,8 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: {
-    default: 'NebulaStudy | Học tập thông minh cùng trợ lý AI',
-    template: '%s | NebulaStudy',
+    default: 'Nebula Study | Học tập thông minh cùng trợ lý AI',
+    template: '%s | Nebula Study',
   },
   description: 'Nền tảng học tập thế hệ mới bứt phá giới hạn cùng công nghệ AI. Giải bài tập, luyện đề, học từ vựng 5 phút mỗi ngày.',
   keywords: ['học tập', 'AI', 'giải bài tập', 'flashcard', 'luyện đề', 'gia sư'],
@@ -24,21 +24,21 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'vi_VN',
     url: 'https://nebulastudy.vercel.app',
-    siteName: 'NebulaStudy',
-    title: 'NebulaStudy | Học siêu vui, điểm siêu cao!',
+    siteName: 'Nebula Study',
+    title: 'Nebula Study | Học siêu vui, điểm siêu cao!',
     description: 'Nền tảng học tập thế hệ mới bứt phá giới hạn cùng công nghệ AI.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'NebulaStudy Preview',
+        alt: 'Nebula Study Preview',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NebulaStudy | Học siêu vui, điểm siêu cao!',
+    title: 'Nebula Study | Học siêu vui, điểm siêu cao!',
     description: 'Cùng AI chinh phục mọi đỉnh cao kiến thức.',
     images: ['/og-image.png'],
   },

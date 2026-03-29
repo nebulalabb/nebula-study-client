@@ -22,8 +22,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Brand */}
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Image src="/images/logo.png" alt="NebulaStudy" width={48} height={48} unoptimized className="w-12 h-12 rounded-xl object-contain drop-shadow-md" />
-            <span className="font-black text-3xl tracking-tight drop-shadow-sm">NebulaStudy</span>
+            <Image src="/images/logo.png" alt="Nebula Study" width={48} height={48} unoptimized className="w-12 h-12 rounded-xl object-contain drop-shadow-md" />
+            <span className="font-black text-3xl tracking-tight drop-shadow-sm">Nebula Study</span>
           </Link>
         </div>
 
@@ -46,8 +46,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Mobile Logo Only Form */}
         <div className="absolute top-6 left-6 lg:hidden">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <Image src="/images/logo.png" alt="NebulaStudy" width={32} height={32} unoptimized className="w-8 h-8 rounded-lg object-contain group-hover:rotate-12 transition-transform shadow-sm" />
-            <span className="font-black text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-500">NebulaStudy</span>
+            <Image src="/images/logo.png" alt="Nebula Study" width={32} height={32} unoptimized className="w-8 h-8 rounded-lg object-contain group-hover:rotate-12 transition-transform shadow-sm" />
+            <span className="font-black text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-500">Nebula Study</span>
           </Link>
         </div>
 

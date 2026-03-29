@@ -2,10 +2,10 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'NebulaStudy | Nền tảng học tập thông minh cùng AI',
+  title: 'Nebula Study | Nền tảng học tập thông minh cùng AI',
   description: 'Biến việc học nhàm chán thành cuộc phiêu lưu thú vị. Giải bài tập, luyện đề, học từ vựng 5 phút mỗi ngày cùng trợ lý AI siêu đỉnh.',
   openGraph: {
-    title: 'NebulaStudy | Học siêu vui, điểm siêu cao!',
+    title: 'Nebula Study | Học siêu vui, điểm siêu cao!',
     description: 'Nền tảng học tập thế hệ mới bứt phá giới hạn cùng công nghệ AI.',
     images: ['/og-image.png'],
   },
@@ -31,13 +31,13 @@ export default function LandingPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "NebulaStudy",
+    "name": "Nebula Study",
     "alternateName": ["Nebula Study", "Học cùng Nebula"],
     "url": "https://nebulastudy.vercel.app",
     "description": "Nền tảng học tập thông minh cùng trợ lý AI - Giải bài tập, Flashcard, Luyện đề.",
     "publisher": {
       "@type": "Organization",
-      "name": "NebulaStudy Team",
+      "name": "Nebula Study Team",
       "logo": {
         "@type": "ImageObject",
         "url": "https://nebulastudy.vercel.app/logo.png"

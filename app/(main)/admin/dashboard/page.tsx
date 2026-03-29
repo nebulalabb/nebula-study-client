@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-black text-gray-900 dark:text-zinc-100 mb-2">Dashboard</h1>
-        <p className="text-gray-500">Tổng quan hoạt động nền tảng NebulaStudy</p>
+        <p className="text-gray-500">Tổng quan hoạt động nền tảng Nebula Study</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

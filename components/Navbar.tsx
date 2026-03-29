@@ -135,7 +135,7 @@ export default function Navbar() {
                         <Trophy size={18} className="text-amber-500" /> Xếp hạng
                       </Link>
 
-                      <Link href="/social/friends" className="px-4 py-2 text-base font-bold text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-all flex items-center gap-2">
+                      <Link href="/social" className="px-4 py-2 text-base font-bold text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-all flex items-center gap-2">
                         <Users size={18} className="text-indigo-500" /> Cộng đồng
                       </Link>
 
@@ -153,6 +153,9 @@ export default function Navbar() {
                       </Link>
                       <Link href="/billing/upgrade" className="px-4 py-2 text-base font-bold text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-all flex items-center gap-2">
                         <Crown size={18} className="text-amber-500" /> Gói cước
+                      </Link>
+                      <Link href="/blog" className="px-4 py-2 text-base font-bold text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-all flex items-center gap-2">
+                        <FileText size={18} className="text-emerald-500" /> Blog
                       </Link>
                     </>
                   )}
@@ -298,6 +301,7 @@ export default function Navbar() {
         <div className="md:hidden bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-zinc-900/50 py-4 px-4 space-y-1 animate-in slide-in-from-top-4">
           <Link href={featuresLink} className="block px-4 py-2.5 text-lg font-bold text-gray-700 dark:text-zinc-300 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-colors">✨ Công cụ</Link>
           <Link href="/billing/upgrade" className="block px-4 py-2.5 text-lg font-bold text-gray-700 dark:text-zinc-300 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-colors">💎 Gói cước</Link>
+          <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block px-4 py-2.5 text-lg font-bold text-gray-700 dark:text-zinc-300 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-colors">📝 Blog</Link>
 
           {isAuthenticated ? (
             <>
@@ -324,7 +328,7 @@ export default function Navbar() {
                 <Trophy size={18} className="text-amber-500" /> Bảng xếp hạng
               </Link>
 
-              <Link href="/social/friends" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-base font-bold text-gray-700 rounded-xl hover:bg-orange-50 hover:text-orange-600">
+              <Link href="/social" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-base font-bold text-gray-700 rounded-xl hover:bg-orange-50 hover:text-orange-600">
                 <Users size={18} className="text-indigo-500" /> Cộng đồng
               </Link>
 

@@ -19,6 +19,9 @@ const ICON_MAP: Record<string, string> = {
   system: '📣',
   friend_request: '💌',
   friend_accepted: '🤝',
+  feed_like: '❤️',
+  feed_comment: '💬',
+  forum_reply: '📝',
 };
 
 export function NotificationBell() {
@@ -114,7 +117,15 @@ export function NotificationBell() {
         else router.push('/social');
         break;
       case 'flashcard_review_due':
-        router.push('/learn/flashcards');
+        router.push('/learn/flashcard');
+        break;
+      case 'feed_like':
+      case 'feed_comment':
+        router.push('/social/feed');
+        break;
+      case 'forum_reply':
+        if (n.data?.slug) router.push(`/social/forum/${n.data.slug}`);
+        else router.push('/social/forum');
         break;
       default:
         router.push('/notifications');

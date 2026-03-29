@@ -51,8 +51,8 @@ const tools = [
     title: 'Luyện đề 4.0',
     description: 'Kho đề phong phú, chấm điểm tự động với phân tích lỗ hổng',
     icon: BookOpen,
-    iconColor: 'text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-900/10',
+    iconColor: 'text-orange-500',
+    bg: 'bg-orange-50 dark:bg-orange-900/10',
     href: '/learn/exam',
     module: 'exam',
     quotaLabel: 'Đề tháng này',
@@ -81,8 +81,8 @@ const tools = [
     title: 'Thuê Gia Sư',
     description: 'Kết nối với gia sư hàng đầu — minh bạch về giá và chất lượng',
     icon: Users,
-    iconColor: 'text-indigo-500',
-    bg: 'bg-indigo-50 dark:bg-indigo-900/10',
+    iconColor: 'text-orange-600',
+    bg: 'bg-orange-100/50 dark:bg-orange-900/10',
     href: '/learn/tutor',
     module: null,
     quotaLabel: null,
@@ -91,8 +91,8 @@ const tools = [
     title: 'Tạo Bài Test Nhanh',
     description: 'Tự tạo bộ câu hỏi ôn tập từ bất kỳ tài liệu nào',
     icon: CheckCircle,
-    iconColor: 'text-sky-500',
-    bg: 'bg-sky-50 dark:bg-sky-900/10',
+    iconColor: 'text-rose-500',
+    bg: 'bg-rose-50 dark:bg-rose-900/10',
     href: '/learn/quiz',
     module: 'quiz',
     quotaLabel: 'Quiz hôm nay',
@@ -160,14 +160,14 @@ export default function DashboardPage() {
         </header>
         
         {user?.role === 'tutor' && (
-          <section className="bg-indigo-600 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-indigo-500/20 text-white relative overflow-hidden group">
+          <section className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-orange-500/20 text-white relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-1000" />
             <div className="relative z-10 space-y-2 text-center md:text-left">
               <h3 className="text-3xl font-black tracking-tight">Chế độ Gia Sư đã bật! 🎓</h3>
-              <p className="text-indigo-100 font-bold">Kiểm tra lịch dạy và chuẩn bị bài giảng cho học sinh ngay nhé.</p>
+              <p className="text-orange-50 font-bold">Kiểm tra lịch dạy và chuẩn bị bài giảng cho học sinh ngay nhé.</p>
             </div>
             <Link href="/my/sessions" className="relative z-10">
-              <Button className="h-14 px-10 rounded-2xl font-black bg-white text-indigo-600 hover:bg-indigo-50 shadow-xl transition-all flex items-center gap-2">
+              <Button className="h-14 px-10 rounded-2xl font-black bg-white text-orange-600 hover:bg-orange-50 shadow-xl transition-all flex items-center gap-2">
                  Lịch dạy của tôi <ChevronRight size={20} className="stroke-[3px]" />
               </Button>
             </Link>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
             icon={Trophy} 
             label="Xếp hạng" 
             value={user?.ranking ? `#${user.ranking}` : 'N/A'} 
-            color="bg-gradient-to-br from-indigo-400 to-purple-500"
+            color="bg-gradient-to-br from-emerald-400 to-teal-500"
             delay="delay-150"
           />
         </section>

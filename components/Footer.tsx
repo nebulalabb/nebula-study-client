@@ -14,6 +14,7 @@ export default function Footer() {
           Thiết kế với ❤️ dành cho học sinh Việt Nam.
         </div>
         <div className="flex items-center gap-6 text-lg font-bold text-gray-400">
+          <Link href="/blog" className="hover:text-orange-500 transition-colors">Blog</Link>
           <Link href="/terms" className="hover:text-orange-500 transition-colors">Điều khoản</Link>
           <Link href="/privacy" className="hover:text-orange-500 transition-colors">Bảo mật</Link>
           <Link href="/help" className="hover:text-orange-500 transition-colors">Trợ giúp</Link>

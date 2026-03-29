@@ -40,7 +40,7 @@ function CallbackHandler() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF9F5]">
       <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <h2 className="text-2xl font-black text-gray-800 animate-pulse">Đang kết nối với NebulaStudy...</h2>
+      <h2 className="text-2xl font-black text-gray-800 animate-pulse">Đang kết nối với Nebula Study...</h2>
       <p className="text-gray-500 font-medium">Bạn sẽ được chuyển hướng trong giây lát.</p>
     </div>
   );

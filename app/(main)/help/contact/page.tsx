@@ -5,7 +5,7 @@ import { Send, CheckCircle, ArrowLeft, HelpCircle, Bug, Sparkles, MessageSquare 
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast-util';
 
 export default function ContactFormPage() {
   const [formData, setFormData] = useState({

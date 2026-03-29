@@ -26,11 +26,11 @@ import Link from 'next/link';
 const ICON_MAP: Record<string, React.ReactNode> = {
   flashcard_review_due: <Zap size={20} className="text-amber-500" />,
   streak_reminder: <Flame size={20} className="text-orange-500" />,
-  booking_confirmed: <Calendar size={20} className="text-blue-500" />,
-  booking_reminder: <Clock size={20} className="text-indigo-500" />,
+  booking_confirmed: <Calendar size={20} className="text-amber-500" />,
+  booking_reminder: <Clock size={20} className="text-orange-500" />,
   payment_success: <CreditCard size={20} className="text-emerald-500" />,
   payment_failed: <AlertCircle size={20} className="text-rose-500" />,
-  system: <Info size={20} className="text-sky-500" />,
+  system: <Info size={20} className="text-orange-600" />,
 };
 
 const TYPE_LABEL: Record<string, string> = {

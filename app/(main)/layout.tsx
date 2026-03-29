@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin');
+  const isSocialPage = pathname?.startsWith('/social');
 
   if (isAdminPage) {
     return <main className="flex-1">{children}</main>;
@@ -19,7 +20,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <main className="flex-1 pt-20">
         {children}
       </main>
-      <Footer />
+      {!isSocialPage && <Footer />}
     </>
   );
 }

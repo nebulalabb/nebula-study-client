@@ -8,6 +8,8 @@ import { ArrowLeft, Play, Plus, Edit2, Trash2, BookOpen, Layers, Sparkles } from
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import CuteModal from '@/components/ui/CuteModal';
+import { toast } from '@/lib/toast-util';
 
 interface Flashcard {
   id: string;
@@ -42,6 +44,7 @@ export default function FlashcardManagePage() {
   const [hint, setHint] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     apiClient.get(`/flashcard/sets/${setId}`)
@@ -79,8 +82,9 @@ export default function FlashcardManagePage() {
       setBack('');
       setHint('');
       setImageFile(null);
+      toast.success('Đã thêm thẻ bài mới! ✨');
     } catch {
-      alert('Không thể thêm thẻ rùi!');
+      toast.error('Không thể thêm thẻ rùi!');
     } finally {
       setIsAdding(false);
     }
@@ -92,8 +96,9 @@ export default function FlashcardManagePage() {
       const newStatus = !setData.is_public;
       await apiClient.patch(`/flashcard/sets/${setId}`, { is_public: newStatus });
       setSetData({ ...setData, is_public: newStatus });
+      toast.success(newStatus ? 'Đã công khai bộ thẻ! ✨' : 'Đã chuyển sang riêng tư');
     } catch {
-      alert('Không thể thay đổi trạng thái công khai rùi!');
+      toast.error('Không thể thay đổi trạng thái rùi!');
     }
   };
 
@@ -101,16 +106,22 @@ export default function FlashcardManagePage() {
     if (!setData?.share_token) return;
     const url = `${window.location.origin}/learn/flashcard/public/${setData.share_token}`;
     navigator.clipboard.writeText(url);
-    alert('Đã sao chép link chia sẻ vào bộ nhớ tạm! 🎉');
+    toast.success('Đã sao chép link chia sẻ! 🎉');
   };
 
-  const handleDeleteSet = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa bộ thẻ này không? Hành động này không thể hoàn tác đâu nha!')) return;
+  const handleDeleteSet = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteSet = async () => {
     try {
       await apiClient.delete(`/flashcard/sets/${setId}`);
+      toast.success('Đã xóa bộ thẻ bài');
       router.push('/learn/flashcard');
     } catch {
-      alert('Không thể xóa bộ thẻ rùi :(');
+      toast.error('Không thể xóa bộ thẻ rùi :(');
+    } finally {
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -133,198 +144,208 @@ export default function FlashcardManagePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF9F5] pb-20">
-      <div className="max-w-5xl mx-auto px-6 pt-10 space-y-12">
-        
-        {/* ── Header ─────────────────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
-          <div className="flex items-start gap-5">
-            <Link href="/learn/flashcard" className="p-3 mt-1 bg-white hover:bg-orange-50 text-gray-400 hover:text-orange-600 rounded-2xl shadow-sm transition-all border border-transparent hover:border-orange-100 shrink-0">
-              <ArrowLeft size={24} />
-            </Link>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="px-4 py-1.5 text-xs font-black bg-orange-100 text-orange-600 rounded-full uppercase tracking-widest border border-orange-200/50 shadow-sm">
-                  {setData.subject || 'Tổng hợp'}
-                </span>
-                <span className="text-gray-400 font-bold text-sm bg-white px-3 py-1 rounded-lg border border-gray-50">{setData.cards.length} thẻ bài</span>
-              </div>
-              <h1 className="text-4xl font-black tracking-tight leading-tight">{setData.title}</h1>
-              {setData.description && <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-2xl">{setData.description}</p>}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <button 
-              onClick={handleTogglePublic}
-              className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black transition-all border-2 ${
-                setData.is_public 
-                  ? 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100' 
-                  : 'bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500'
-              }`}
-            >
-              <Sparkles size={18} className={setData.is_public ? 'animate-pulse' : ''} />
-              {setData.is_public ? 'Đang Công khai' : 'Để Chế độ riêng tư'}
-            </button>
-
-            {setData.is_public && (
-              <button 
-                onClick={handleCopyLink}
-                className="flex items-center gap-2 px-6 py-4 bg-white border-2 border-orange-100 text-orange-600 rounded-2xl font-black transition-all hover:bg-orange-50 active:scale-95"
-              >
-                Copy Link chia sẻ
-              </button>
-            )}
-
-            <Link
-              href={`/learn/flashcard/study/${setId}`}
-              className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-400 to-rose-500 shadow-xl shadow-orange-500/20 text-white rounded-2xl font-black transition-all hover:scale-105 active:scale-95"
-            >
-              <Play size={20} fill="currentColor" className="group-hover:scale-110 transition-transform" /> 
-              Học ngay
-            </Link>
-            <button 
-              onClick={handleDeleteSet} 
-              className="p-4 text-gray-400 hover:text-rose-500 bg-white hover:bg-rose-50 rounded-2xl shadow-sm border border-transparent hover:border-rose-100 transition-all" 
-              title="Xóa bộ thẻ"
-            >
-              <Trash2 size={22} />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-10">
+    <>
+      <div className="min-h-screen bg-[#FFF9F5] pb-20">
+        <div className="max-w-5xl mx-auto px-6 pt-10 space-y-12">
           
-          {/* ── Cards List (2/3 width) ─────────────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-2xl font-black flex items-center gap-3 ml-2">
-              <div className="p-2 bg-white rounded-xl shadow-sm"><BookOpen className="text-orange-500" size={24} /></div>
-              Danh sách thẻ bài
-            </h2>
-
-            {setData.cards.length === 0 ? (
-              <div className="p-12 text-center bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-orange-100">
-                <Layers className="text-orange-200 mx-auto mb-4" size={48} />
-                <p className="font-bold text-gray-500">Chưa có thẻ nào trong bộ này cả!</p>
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+            <div className="flex items-start gap-5">
+              <Link href="/learn/flashcard" className="p-3 mt-1 bg-white hover:bg-orange-50 text-gray-400 hover:text-orange-600 rounded-2xl shadow-sm transition-all border border-transparent hover:border-orange-100 shrink-0">
+                <ArrowLeft size={24} />
+              </Link>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="px-4 py-1.5 text-xs font-black bg-orange-100 text-orange-600 rounded-full uppercase tracking-widest border border-orange-200/50 shadow-sm">
+                    {setData.subject || 'Tổng hợp'}
+                  </span>
+                  <span className="text-gray-400 font-bold text-sm bg-white px-3 py-1 rounded-lg border border-gray-50">{setData.cards.length} thẻ bài</span>
+                </div>
+                <h1 className="text-4xl font-black tracking-tight leading-tight">{setData.title}</h1>
+                {setData.description && <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-2xl">{setData.description}</p>}
               </div>
-            ) : (
-              <div className="space-y-4">
-                {setData.cards.map((card, idx) => (
-                  <div key={card.id} className="group relative p-8 bg-white rounded-[2rem] border-2 border-transparent hover:border-orange-100 transition-all shadow-sm hover:shadow-xl hover:shadow-orange-500/5 flex flex-col md:flex-row gap-8">
-                    <div className="shrink-0 w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-sm font-black text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-colors rotate-3">
-                      {idx + 1}
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-8 flex-1 text-sm prose prose-sm max-w-none font-medium">
-                      <div className="space-y-2">
-                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Mặt trước</p>
-                        <div className="text-gray-800 font-bold text-base leading-relaxed">
-                          <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{card.front}</ReactMarkdown>
-                        </div>
-                      </div>
-                      <div className="md:pl-8 md:border-l-2 md:border-dashed md:border-orange-50">
-                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Mặt sau</p>
-                        <div className="text-orange-600 font-bold text-base leading-relaxed">
-                          <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{card.back}</ReactMarkdown>
-                        </div>
-                        {card.image_url && (
-                          <div className="mt-4 rounded-2xl overflow-hidden border-2 border-orange-50 shadow-sm">
-                            <img src={card.image_url} alt="Card visual" className="w-full h-auto object-contain max-h-48" />
-                          </div>
-                        )}
-                        {card.hint && (
-                          <div className="mt-4 flex items-center gap-2 p-2 px-3 bg-amber-50 rounded-xl border border-amber-100 w-fit">
-                            <span className="text-[10px]">💡</span>
-                            <span className="text-xs font-bold text-amber-700">{card.hint}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
 
-          {/* ── Side Actions (1/3 width) ───────────────────────────────────── */}
-          <div className="space-y-8">
-            {/* Add Card Form */}
-            <div className="p-8 bg-white rounded-[2.5rem] border-2 border-orange-50 shadow-xl shadow-orange-500/5 sticky top-8">
-              <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-orange-600">
-                <Plus size={24} className="p-1 bg-orange-100 rounded-lg" /> Thêm thẻ mới
-              </h3>
-              
-              <form onSubmit={handleAddCard} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Mặt trước</label>
-                  <textarea 
-                    value={front} onChange={e => setFront(e.target.value)} required
-                    placeholder="VD: Định nghĩa về Photosynthesis..." 
-                    className="w-full px-5 py-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm resize-none"
-                    rows={4}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Mặt sau</label>
-                  <textarea 
-                    value={back} onChange={e => setBack(e.target.value)} required
-                    placeholder="VD: Quá trình quang hợp là..." 
-                    className="w-full px-5 py-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm resize-none"
-                    rows={4}
-                  />
-                </div>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button 
+                onClick={handleTogglePublic}
+                className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black transition-all border-2 ${
+                  setData.is_public 
+                    ? 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100' 
+                    : 'bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500'
+                }`}
+              >
+                <Sparkles size={18} className={setData.is_public ? 'animate-pulse' : ''} />
+                {setData.is_public ? 'Đang Công khai' : 'Để Chế độ riêng tư'}
+              </button>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gợi ý (tùy chọn)</label>
-                  <input 
-                    type="text" value={hint} onChange={e => setHint(e.target.value)} 
-                    placeholder="VD: Liên quan đến ánh sáng..." 
-                    className="w-full px-5 py-3 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hình ảnh minh họa</label>
-                  <div className="relative group/file">
-                    <input 
-                      type="file" accept="image/*"
-                      onChange={e => setImageFile(e.target.files?.[0] || null)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    <div className={`w-full px-5 py-3 rounded-2xl border-2 border-dashed transition-all flex items-center gap-3 ${
-                      imageFile ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50/50 border-gray-100 text-gray-400 group-hover/file:border-orange-200'
-                    }`}>
-                      <div className="p-1.5 bg-white rounded-lg shadow-sm">
-                        <Plus size={16} />
-                      </div>
-                      <span className="text-sm font-bold truncate">
-                        {imageFile ? imageFile.name : 'Chọn ảnh từ máy tính...'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
+              {setData.is_public && (
                 <button 
-                  type="submit" 
-                  disabled={isAdding || !front || !back} 
-                  className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-2 px-6 py-4 bg-white border-2 border-orange-100 text-orange-600 rounded-2xl font-black transition-all hover:bg-orange-50 active:scale-95"
                 >
-                  {isAdding ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <><Sparkles size={18} className="group-hover:rotate-12 transition-transform" /> Thêm vào bộ thẻ</>
-                  )}
+                  Copy Link chia sẻ
                 </button>
-              </form>
-              
-              <p className="mt-6 text-[10px] text-gray-400 font-bold text-center leading-relaxed">
-                🚀 Mẹo: Bạn có thể sử dụng Markdown và LaTeX $$x^2$$ cho các công thức Toán lý nhé!
-              </p>
+              )}
+
+              <Link
+                href={`/learn/flashcard/study/${setId}`}
+                className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-400 to-rose-500 shadow-xl shadow-orange-500/20 text-white rounded-2xl font-black transition-all hover:scale-105 active:scale-95"
+              >
+                <Play size={20} fill="currentColor" className="group-hover:scale-110 transition-transform" /> 
+                Học ngay
+              </Link>
+              <button 
+                onClick={handleDeleteSet} 
+                className="p-4 text-gray-400 hover:text-rose-500 bg-white hover:bg-rose-50 rounded-2xl shadow-sm border border-transparent hover:border-rose-100 transition-all" 
+                title="Xóa bộ thẻ"
+              >
+                <Trash2 size={22} />
+              </button>
             </div>
           </div>
 
+          <div className="grid lg:grid-cols-3 gap-10">
+            
+            {/* Cards List (2/3 width) */}
+            <div className="lg:col-span-2 space-y-6">
+              <h2 className="text-2xl font-black flex items-center gap-3 ml-2">
+                <div className="p-2 bg-white rounded-xl shadow-sm"><BookOpen className="text-orange-500" size={24} /></div>
+                Danh sách thẻ bài
+              </h2>
+
+              {setData.cards.length === 0 ? (
+                <div className="p-12 text-center bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-orange-100">
+                  <Layers className="text-orange-200 mx-auto mb-4" size={48} />
+                  <p className="font-bold text-gray-500">Chưa có thẻ nào trong bộ này cả!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {setData.cards.map((card, idx) => (
+                    <div key={card.id} className="group relative p-8 bg-white rounded-[2rem] border-2 border-transparent hover:border-orange-100 transition-all shadow-sm hover:shadow-xl hover:shadow-orange-500/5 flex flex-col md:flex-row gap-8">
+                      <div className="shrink-0 w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-sm font-black text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-colors rotate-3">
+                        {idx + 1}
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-8 flex-1 text-sm prose prose-sm max-w-none font-medium">
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Mặt trước</p>
+                          <div className="text-gray-800 font-bold text-base leading-relaxed">
+                            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{card.front}</ReactMarkdown>
+                          </div>
+                        </div>
+                        <div className="md:pl-8 md:border-l-2 md:border-dashed md:border-orange-50">
+                          <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Mặt sau</p>
+                          <div className="text-orange-600 font-bold text-base leading-relaxed">
+                            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{card.back}</ReactMarkdown>
+                          </div>
+                          {card.image_url && (
+                            <div className="mt-4 rounded-2xl overflow-hidden border-2 border-orange-50 shadow-sm">
+                              <img src={card.image_url} alt="Card visual" className="w-full h-auto object-contain max-h-48" />
+                            </div>
+                          )}
+                          {card.hint && (
+                            <div className="mt-4 flex items-center gap-2 p-2 px-3 bg-amber-50 rounded-xl border border-amber-100 w-fit">
+                              <span className="text-[10px]">💡</span>
+                              <span className="text-xs font-bold text-amber-700">{card.hint}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Side Actions (1/3 width) */}
+            <div className="space-y-8">
+              <div className="p-8 bg-white rounded-[2.5rem] border-2 border-orange-50 shadow-xl shadow-orange-500/5 sticky top-8">
+                <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-orange-600">
+                  <Plus size={24} className="p-1 bg-orange-100 rounded-lg" /> Thêm thẻ mới
+                </h3>
+                
+                <form onSubmit={handleAddCard} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Mặt trước</label>
+                    <textarea 
+                      value={front} onChange={e => setFront(e.target.value)} required
+                      placeholder="VD: Định nghĩa về Photosynthesis..." 
+                      className="w-full px-5 py-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm resize-none"
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Mặt sau</label>
+                    <textarea 
+                      value={back} onChange={e => setBack(e.target.value)} required
+                      placeholder="VD: Quá trình quang hợp là..." 
+                      className="w-full px-5 py-4 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm resize-none"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gợi ý (tùy chọn)</label>
+                    <input 
+                      type="text" value={hint} onChange={e => setHint(e.target.value)} 
+                      placeholder="VD: Liên quan đến ánh sáng..." 
+                      className="w-full px-5 py-3 rounded-2xl border-2 border-gray-50 bg-gray-50/50 text-sm font-bold focus:outline-none focus:border-orange-200 focus:bg-white transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hình ảnh minh họa</label>
+                    <div className="relative group/file">
+                      <input 
+                        type="file" accept="image/*"
+                        onChange={e => setImageFile(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className={`w-full px-5 py-3 rounded-2xl border-2 border-dashed transition-all flex items-center gap-3 ${
+                        imageFile ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50/50 border-gray-100 text-gray-400 group-hover/file:border-orange-200'
+                      }`}>
+                        <div className="p-1.5 bg-white rounded-lg shadow-sm">
+                          <Plus size={16} />
+                        </div>
+                        <span className="text-sm font-bold truncate">
+                          {imageFile ? imageFile.name : 'Chọn ảnh từ máy tính...'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isAdding || !front || !back} 
+                    className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                  >
+                    {isAdding ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <><Sparkles size={18} className="group-hover:rotate-12 transition-transform" /> Thêm vào bộ thẻ</>
+                    )}
+                  </button>
+                </form>
+                
+                <p className="mt-6 text-[10px] text-gray-400 font-bold text-center leading-relaxed">
+                  🚀 Mẹo: Bạn có thể sử dụng Markdown và LaTeX $$x^2$$ cho các công thức Toán lý nhé!
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
+
+      <CuteModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteSet}
+        title="Xác nhận xóa"
+        description="Bạn có chắc chắn muốn xóa bộ thẻ này không? Hành động này không thể hoàn tác đâu nha!"
+        type="confirm"
+      />
+    </>
   );
 }
